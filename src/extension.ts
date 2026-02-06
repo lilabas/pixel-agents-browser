@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 
 const CLAUDE_TERMINAL_PATTERN = /^Claude Code #(\d+)$/;
 
@@ -22,6 +23,15 @@ class ArcadiaViewProvider implements vscode.WebviewViewProvider {
 	private folders: FolderInfo[] = [];
 	private agentFolders = new Map<number, string>(); // agentId → folderId
 	private movingAgents = new Set<number>(); // agents currently being moved (suppress close event)
+
+	// Transcript watching state
+	private sessionIds = new Map<number, string>();
+	private pollingTimers = new Map<number, ReturnType<typeof setInterval>>();
+	private fileWatchers = new Map<number, fs.FSWatcher>();
+	private fileOffsets = new Map<number, number>();
+	private lineBuffers = new Map<number, string>();
+	private watchTimers = new Map<number, ReturnType<typeof setTimeout>>();
+	private activeToolIds = new Map<number, Set<string>>();
 
 	constructor(private readonly extensionUri: vscode.Uri) {}
 
@@ -78,6 +88,7 @@ class ArcadiaViewProvider implements vscode.WebviewViewProvider {
 			for (const [id, terminal] of this.terminals) {
 				if (terminal === closed) {
 					if (this.movingAgents.has(id)) { break; }
+					this.stopWatching(id);
 					this.terminals.delete(id);
 					this.agentFolders.delete(id);
 					webviewView.webview.postMessage({ type: 'agentClosed', id });
@@ -155,6 +166,7 @@ class ArcadiaViewProvider implements vscode.WebviewViewProvider {
 		// terminal.sendText() cannot submit commands to Ink's raw-mode stdin.
 		// Instead, dispose the terminal and restart in the new directory.
 		this.movingAgents.add(agentId);
+		this.stopWatching(agentId);
 		oldTerminal.dispose();
 
 		const addDirs = keepAccess && sourcePath ? [sourcePath] : undefined;
@@ -176,7 +188,10 @@ class ArcadiaViewProvider implements vscode.WebviewViewProvider {
 			name: `Claude Code #${id}`,
 			cwd,
 		});
-		const parts = ['claude'];
+		const sessionId = crypto.randomUUID();
+		this.sessionIds.set(id, sessionId);
+
+		const parts = ['claude', '--session-id', sessionId];
 		if (addDirs) {
 			for (const dir of addDirs) {
 				parts.push(`--add-dir "${dir}"`);
@@ -186,6 +201,7 @@ class ArcadiaViewProvider implements vscode.WebviewViewProvider {
 			parts.push('--continue');
 		}
 		terminal.sendText(parts.join(' '));
+		this.startWatchingTranscript(id, sessionId, cwd);
 		return terminal;
 	}
 
@@ -225,10 +241,192 @@ class ArcadiaViewProvider implements vscode.WebviewViewProvider {
 		}
 		return false;
 	}
+
+	// --- Transcript JSONL watching ---
+
+	private getProjectDirPath(cwd?: string): string | null {
+		const workspacePath = cwd || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+		if (!workspacePath) { return null; }
+		// C:\Users\Dev\Desktop\Arcadia → C--Users-Dev-Desktop-Arcadia
+		const dirName = workspacePath.replace(/[:\\/]/g, '-');
+		return path.join(os.homedir(), '.claude', 'projects', dirName);
+	}
+
+	private startWatchingTranscript(agentId: number, sessionId: string, cwd?: string) {
+		const projectDir = this.getProjectDirPath(cwd);
+		if (!projectDir) {
+			console.log(`[Arcadia] No project dir for agent ${agentId}, cwd=${cwd}`);
+			return;
+		}
+
+		const filePath = path.join(projectDir, `${sessionId}.jsonl`);
+		this.fileOffsets.set(agentId, 0);
+		this.lineBuffers.set(agentId, '');
+		console.log(`[Arcadia] Watching transcript: ${filePath}`);
+
+		// Wait for file to appear, then start watching
+		const tryStart = (retries: number) => {
+			if (!this.sessionIds.has(agentId)) { return; }
+			if (fs.existsSync(filePath)) {
+				console.log(`[Arcadia] File found for agent ${agentId}`);
+				// Primary: fs.watch for instant response
+				try {
+					const watcher = fs.watch(filePath, () => {
+						this.readNewLines(agentId, filePath);
+					});
+					this.fileWatchers.set(agentId, watcher);
+				} catch (e) {
+					console.log(`[Arcadia] fs.watch failed for agent ${agentId}: ${e}`);
+				}
+				// Backup: poll every 2s in case fs.watch misses events
+				const interval = setInterval(() => {
+					if (!this.sessionIds.has(agentId)) { clearInterval(interval); return; }
+					this.readNewLines(agentId, filePath);
+				}, 2000);
+				this.pollingTimers.set(agentId, interval);
+				// Initial read
+				this.readNewLines(agentId, filePath);
+			} else if (retries > 0) {
+				const timer = setTimeout(() => tryStart(retries - 1), 1000);
+				this.watchTimers.set(agentId, timer);
+			} else {
+				console.log(`[Arcadia] File never appeared: ${filePath}`);
+			}
+		};
+		tryStart(30);
+	}
+
+	private readNewLines(agentId: number, filePath: string) {
+		try {
+			const stat = fs.statSync(filePath);
+			const offset = this.fileOffsets.get(agentId) || 0;
+			if (stat.size <= offset) { return; }
+
+			const buf = Buffer.alloc(stat.size - offset);
+			const fd = fs.openSync(filePath, 'r');
+			fs.readSync(fd, buf, 0, buf.length, offset);
+			fs.closeSync(fd);
+			this.fileOffsets.set(agentId, stat.size);
+
+			// Prepend any leftover partial line from the previous read
+			const text = (this.lineBuffers.get(agentId) || '') + buf.toString('utf-8');
+			const lines = text.split('\n');
+			// Last element may be an incomplete line — save it for next read
+			this.lineBuffers.set(agentId, lines.pop() || '');
+
+			for (const line of lines) {
+				if (!line.trim()) { continue; }
+				this.processTranscriptLine(agentId, line);
+			}
+		} catch (e) {
+			console.log(`[Arcadia] Read error for agent ${agentId}: ${e}`);
+		}
+	}
+
+	private processTranscriptLine(agentId: number, line: string) {
+		try {
+			const record = JSON.parse(line);
+
+			if (record.type === 'assistant' && Array.isArray(record.message?.content)) {
+				const blocks = record.message.content as Array<{
+					type: string; id?: string; name?: string; input?: Record<string, unknown>;
+				}>;
+				for (const block of blocks) {
+					if (block.type === 'tool_use' && block.id) {
+						const status = this.formatToolStatus(block.name || '', block.input || {});
+						console.log(`[Arcadia] Agent ${agentId} tool start: ${block.id} ${status}`);
+						let active = this.activeToolIds.get(agentId);
+						if (!active) { active = new Set(); this.activeToolIds.set(agentId, active); }
+						active.add(block.id);
+						this.webviewView?.webview.postMessage({
+							type: 'agentToolStart',
+							id: agentId,
+							toolId: block.id,
+							status,
+						});
+					}
+				}
+			} else if (record.type === 'user' && Array.isArray(record.message?.content)) {
+				const blocks = record.message.content as Array<{
+					type: string; tool_use_id?: string;
+				}>;
+				const hasToolResult = blocks.some(b => b.type === 'tool_result');
+				if (hasToolResult) {
+					for (const block of blocks) {
+						if (block.type === 'tool_result' && block.tool_use_id) {
+							console.log(`[Arcadia] Agent ${agentId} tool done: ${block.tool_use_id}`);
+							this.activeToolIds.get(agentId)?.delete(block.tool_use_id);
+							const toolId = block.tool_use_id;
+							// Delay so the webview renders the active (blue) state before transitioning to done (green)
+							setTimeout(() => {
+								this.webviewView?.webview.postMessage({
+									type: 'agentToolDone',
+									id: agentId,
+									toolId,
+								});
+							}, 300);
+						}
+					}
+				} else {
+					// Plain user message (new prompt) — clear all tool activities
+					this.activeToolIds.delete(agentId);
+					this.webviewView?.webview.postMessage({
+						type: 'agentToolsClear',
+						id: agentId,
+					});
+				}
+			}
+		} catch {
+			// Ignore malformed lines
+		}
+	}
+
+	private formatToolStatus(toolName: string, input: Record<string, unknown>): string {
+		const base = (p: unknown) => typeof p === 'string' ? path.basename(p) : '';
+		switch (toolName) {
+			case 'Read': return `Reading ${base(input.file_path)}`;
+			case 'Edit': return `Editing ${base(input.file_path)}`;
+			case 'Write': return `Writing ${base(input.file_path)}`;
+			case 'Bash': {
+				const cmd = (input.command as string) || '';
+				return `Running: ${cmd.length > 30 ? cmd.slice(0, 30) + '\u2026' : cmd}`;
+			}
+			case 'Glob': return 'Searching files';
+			case 'Grep': return 'Searching code';
+			case 'WebFetch': return 'Fetching web content';
+			case 'WebSearch': return 'Searching the web';
+			case 'Task': return 'Running subtask';
+			default: return `Using ${toolName}`;
+		}
+	}
+
+	private stopWatching(agentId: number) {
+		this.fileWatchers.get(agentId)?.close();
+		this.fileWatchers.delete(agentId);
+		const pt = this.pollingTimers.get(agentId);
+		if (pt) { clearInterval(pt); }
+		this.pollingTimers.delete(agentId);
+		const wt = this.watchTimers.get(agentId);
+		if (wt) { clearTimeout(wt); }
+		this.watchTimers.delete(agentId);
+		this.activeToolIds.delete(agentId);
+		this.sessionIds.delete(agentId);
+		this.fileOffsets.delete(agentId);
+		this.lineBuffers.delete(agentId);
+	}
+
+	dispose() {
+		for (const id of [...this.sessionIds.keys()]) {
+			this.stopWatching(id);
+		}
+	}
 }
+
+let providerInstance: ArcadiaViewProvider | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
 	const provider = new ArcadiaViewProvider(context.extensionUri);
+	providerInstance = provider;
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider('arcadia.panelView', provider)
@@ -257,4 +455,6 @@ function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.Uri): s
 	return html;
 }
 
-export function deactivate() {}
+export function deactivate() {
+	providerInstance?.dispose();
+}
