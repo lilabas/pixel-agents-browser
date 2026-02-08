@@ -1,8 +1,36 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { OfficeState } from './office/officeState.js'
+import { OfficeCanvas } from './office/OfficeCanvas.js'
+import { ToolOverlay } from './office/ToolOverlay.js'
 
 declare function acquireVsCodeApi(): { postMessage(msg: unknown): void }
 
 const vscode = acquireVsCodeApi()
+
+// Game state lives outside React — updated imperatively by message handlers
+const officeState = new OfficeState()
+
+/** Map status prefixes back to tool names for animation selection */
+const STATUS_TO_TOOL: Record<string, string> = {
+  'Reading': 'Read',
+  'Searching': 'Grep',
+  'Globbing': 'Glob',
+  'Fetching': 'WebFetch',
+  'Searching web': 'WebSearch',
+  'Writing': 'Write',
+  'Editing': 'Edit',
+  'Running': 'Bash',
+  'Task': 'Task',
+}
+
+function extractToolName(status: string): string | null {
+  for (const [prefix, tool] of Object.entries(STATUS_TO_TOOL)) {
+    if (status.startsWith(prefix)) return tool
+  }
+  // Fallback: first word might be the tool name
+  const first = status.split(/[\s:]/)[0]
+  return first || null
+}
 
 interface ToolActivity {
   toolId: string
@@ -13,11 +41,15 @@ interface ToolActivity {
 
 function App() {
   const [agents, setAgents] = useState<number[]>([])
-  const [selectedAgent, setSelectedAgent] = useState<number | null>(null)
+  const [, setSelectedAgent] = useState<number | null>(null)
   const [agentTools, setAgentTools] = useState<Record<number, ToolActivity[]>>({})
   const [agentStatuses, setAgentStatuses] = useState<Record<number, string>>({})
-  // agentId → parentToolId → sub-tools
   const [subagentTools, setSubagentTools] = useState<Record<number, Record<string, ToolActivity[]>>>({})
+
+  // Hover state for overlay
+  const [hoveredAgent, setHoveredAgent] = useState<number | null>(null)
+  const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
@@ -26,6 +58,7 @@ function App() {
         const id = msg.id as number
         setAgents((prev) => (prev.includes(id) ? prev : [...prev, id]))
         setSelectedAgent(id)
+        officeState.addAgent(id)
       } else if (msg.type === 'agentClosed') {
         const id = msg.id as number
         setAgents((prev) => prev.filter((a) => a !== id))
@@ -48,6 +81,7 @@ function App() {
           delete next[id]
           return next
         })
+        officeState.removeAgent(id)
       } else if (msg.type === 'existingAgents') {
         const incoming = msg.agents as number[]
         setAgents((prev) => {
@@ -56,6 +90,7 @@ function App() {
           for (const id of incoming) {
             if (!ids.has(id)) {
               merged.push(id)
+              officeState.addAgent(id)
             }
           }
           return merged.sort((a, b) => a - b)
@@ -69,6 +104,11 @@ function App() {
           if (list.some((t) => t.toolId === toolId)) return prev
           return { ...prev, [id]: [...list, { toolId, status, done: false }] }
         })
+        // Extract tool name from status (e.g. "Reading src/App.tsx" → "Read")
+        const toolName = extractToolName(status)
+        officeState.setAgentTool(id, toolName)
+        // Agent is active (working)
+        officeState.setAgentActive(id, true)
       } else if (msg.type === 'agentToolDone') {
         const id = msg.id as number
         const toolId = msg.toolId as string
@@ -94,6 +134,7 @@ function App() {
           delete next[id]
           return next
         })
+        officeState.setAgentTool(id, null)
       } else if (msg.type === 'agentSelected') {
         const id = msg.id as number
         setSelectedAgent(id)
@@ -109,6 +150,8 @@ function App() {
           }
           return { ...prev, [id]: status }
         })
+        // Update office state: waiting = not active, active = active
+        officeState.setAgentActive(id, status === 'active')
       } else if (msg.type === 'agentToolPermission') {
         const id = msg.id as number
         setAgentTools((prev) => {
@@ -178,147 +221,22 @@ function App() {
     return () => window.removeEventListener('message', handler)
   }, [])
 
-  const handleSelectAgent = (id: number) => {
-    setSelectedAgent(id)
-    vscode.postMessage({ type: 'focusAgent', id })
-  }
-
   const handleOpenClaude = () => {
     vscode.postMessage({ type: 'openClaude' })
   }
 
-  const renderToolDot = (tool: ToolActivity) => (
-    <span
-      className={tool.done ? undefined : 'arcadia-pulse'}
-      style={{
-        width: 6,
-        height: 6,
-        borderRadius: '50%',
-        background: tool.done
-          ? 'var(--vscode-charts-green, #89d185)'
-          : tool.permissionWait
-            ? 'var(--vscode-charts-yellow, #cca700)'
-            : 'var(--vscode-charts-blue, #3794ff)',
-        display: 'inline-block',
-        flexShrink: 0,
-      }}
-    />
-  )
+  const handleHover = useCallback((agentId: number | null, screenX: number, screenY: number) => {
+    setHoveredAgent(agentId)
+    setHoverPos({ x: screenX, y: screenY })
+  }, [])
 
-  const renderToolLine = (tool: ToolActivity) => (
-    <span
-      key={tool.toolId}
-      style={{
-        fontSize: '11px',
-        opacity: tool.done ? 0.5 : 0.8,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 5,
-      }}
-    >
-      {renderToolDot(tool)}
-      {tool.permissionWait && !tool.done ? 'Needs approval' : tool.status}
-    </span>
-  )
-
-  const renderAgentCard = (id: number) => {
-    const isSelected = selectedAgent === id
-    const tools = agentTools[id] || []
-    const subs = subagentTools[id] || {}
-    const status = agentStatuses[id]
-    const hasActiveTools = tools.some((t) => !t.done)
-    return (
-      <div
-        key={id}
-        style={{
-          border: `1px solid ${isSelected ? 'var(--vscode-focusBorder, #007fd4)' : 'var(--vscode-widget-border, transparent)'}`,
-          borderRadius: 4,
-          padding: '6px 8px',
-          background: isSelected ? 'var(--vscode-list-activeSelectionBackground, rgba(255,255,255,0.04))' : undefined,
-        }}
-      >
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 0 }}>
-          <button
-            onClick={() => handleSelectAgent(id)}
-            style={{
-              borderRadius: '3px 0 0 3px',
-              padding: '6px 10px',
-              fontSize: '13px',
-              background: isSelected ? 'var(--vscode-button-background)' : undefined,
-              color: isSelected ? 'var(--vscode-button-foreground)' : undefined,
-              fontWeight: isSelected ? 'bold' : undefined,
-            }}
-          >
-            Agent #{id}
-          </button>
-          <button
-            onClick={() => vscode.postMessage({ type: 'closeAgent', id })}
-            style={{
-              borderRadius: '0 3px 3px 0',
-              padding: '6px 8px',
-              fontSize: '13px',
-              opacity: 0.7,
-              background: isSelected ? 'var(--vscode-button-background)' : undefined,
-              color: isSelected ? 'var(--vscode-button-foreground)' : undefined,
-            }}
-            title="Close agent"
-          >
-            ✕
-          </button>
-        </span>
-        {(tools.length > 0 || status === 'waiting') && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginTop: 4, paddingLeft: 4 }}>
-            {tools.map((tool) => (
-              <div key={tool.toolId}>
-                {renderToolLine(tool)}
-                {subs[tool.toolId] && subs[tool.toolId].length > 0 && (
-                  <div
-                    style={{
-                      borderLeft: '2px solid var(--vscode-widget-border, rgba(255,255,255,0.12))',
-                      marginLeft: 3,
-                      paddingLeft: 8,
-                      marginTop: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 1,
-                    }}
-                  >
-                    {subs[tool.toolId].map((subTool) => renderToolLine(subTool))}
-                  </div>
-                )}
-              </div>
-            ))}
-            {status === 'waiting' && !hasActiveTools && (
-              <span
-                style={{
-                  fontSize: '11px',
-                  opacity: 0.85,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5,
-                }}
-              >
-                <span
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    background: 'var(--vscode-charts-yellow, #cca700)',
-                    display: 'inline-block',
-                    flexShrink: 0,
-                  }}
-                />
-                Waiting for input
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-    )
-  }
+  const handleClick = useCallback((agentId: number) => {
+    setSelectedAgent(agentId)
+    vscode.postMessage({ type: 'focusAgent', id: agentId })
+  }, [])
 
   return (
-    <div style={{ padding: 12, fontSize: '14px' }}>
+    <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
       <style>{`
         @keyframes arcadia-pulse {
           0%, 100% { opacity: 1; }
@@ -326,22 +244,171 @@ function App() {
         }
         .arcadia-pulse { animation: arcadia-pulse 1.5s ease-in-out infinite; }
       `}</style>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        <button onClick={handleOpenClaude} style={{ padding: '8px 14px', fontSize: '14px' }}>
-          Open Claude Code
+
+      {/* Office canvas fills entire panel */}
+      <OfficeCanvas
+        officeState={officeState}
+        onHover={handleHover}
+        onClick={handleClick}
+      />
+
+      {/* Floating buttons in top-left corner */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 8,
+          left: 8,
+          display: 'flex',
+          gap: 6,
+          zIndex: 50,
+        }}
+      >
+        <button
+          onClick={handleOpenClaude}
+          style={{
+            padding: '5px 10px',
+            fontSize: '12px',
+            background: 'var(--vscode-button-background)',
+            color: 'var(--vscode-button-foreground)',
+            border: 'none',
+            borderRadius: 3,
+            cursor: 'pointer',
+            opacity: 0.9,
+          }}
+        >
+          + Agent
         </button>
         <button
           onClick={() => vscode.postMessage({ type: 'openSessionsFolder' })}
-          style={{ padding: '8px 14px', fontSize: '14px' }}
-          title="Open JSONL sessions folder in file explorer"
+          style={{
+            padding: '5px 10px',
+            fontSize: '12px',
+            background: 'var(--vscode-button-secondaryBackground, #3A3D41)',
+            color: 'var(--vscode-button-secondaryForeground, #ccc)',
+            border: 'none',
+            borderRadius: 3,
+            cursor: 'pointer',
+            opacity: 0.9,
+          }}
+          title="Open JSONL sessions folder"
         >
           Sessions
         </button>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {agents.map(renderAgentCard)}
-      </div>
+
+      {/* Agent name labels above characters */}
+      <AgentLabels officeState={officeState} agents={agents} agentStatuses={agentStatuses} containerRef={containerRef} />
+
+      {/* Hover tooltip */}
+      <ToolOverlay
+        agentId={hoveredAgent}
+        screenX={hoverPos.x}
+        screenY={hoverPos.y}
+        agentTools={agentTools}
+        agentStatuses={agentStatuses}
+        subagentTools={subagentTools}
+      />
     </div>
+  )
+}
+
+/** Small name labels + status dots floating above each character */
+function AgentLabels({
+  officeState,
+  agents,
+  agentStatuses,
+  containerRef,
+}: {
+  officeState: OfficeState
+  agents: number[]
+  agentStatuses: Record<number, string>
+  containerRef: React.RefObject<HTMLDivElement | null>
+}) {
+  // Re-render on animation frame for smooth label positioning
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    let rafId = 0
+    const tick = () => {
+      setTick((n) => n + 1)
+      rafId = requestAnimationFrame(tick)
+    }
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
+  }, [])
+
+  // Compute map offset from container size
+  const el = containerRef.current
+  if (!el) return null
+  const rect = el.getBoundingClientRect()
+  const mapW = 20 * 16 * 2
+  const mapH = 11 * 16 * 2
+  const offsetX = Math.floor((rect.width - mapW) / 2)
+  const offsetY = Math.floor((rect.height - mapH) / 2)
+
+  return (
+    <>
+      {agents.map((id) => {
+        const ch = officeState.characters.get(id)
+        if (!ch) return null
+
+        const screenX = offsetX + ch.x * 2
+        const screenY = offsetY + (ch.y - 24) * 2
+
+        const status = agentStatuses[id]
+        const isWaiting = status === 'waiting'
+        const isActive = ch.isActive
+
+        // Status dot color
+        let dotColor = 'transparent'
+        if (isWaiting) {
+          dotColor = 'var(--vscode-charts-yellow, #cca700)'
+        } else if (isActive) {
+          dotColor = 'var(--vscode-charts-blue, #3794ff)'
+        }
+
+        return (
+          <div
+            key={id}
+            style={{
+              position: 'absolute',
+              left: screenX,
+              top: screenY - 16,
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              pointerEvents: 'none',
+              zIndex: 40,
+            }}
+          >
+            {dotColor !== 'transparent' && (
+              <span
+                className={isActive && !isWaiting ? 'arcadia-pulse' : undefined}
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: dotColor,
+                  marginBottom: 2,
+                }}
+              />
+            )}
+            <span
+              style={{
+                fontSize: '9px',
+                color: 'var(--vscode-foreground)',
+                background: 'rgba(30,30,46,0.7)',
+                padding: '1px 4px',
+                borderRadius: 2,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Agent #{id}
+            </span>
+          </div>
+        )
+      })}
+    </>
   )
 }
 

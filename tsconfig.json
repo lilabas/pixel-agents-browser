@@ -13,6 +13,7 @@
 		"node_modules",
 		"webview-ui",
 		"dist",
-		"out"
+		"out",
+		"scripts"
 	]
 }

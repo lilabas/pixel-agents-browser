@@ -8,7 +8,8 @@ VS Code extension with an embedded React webview panel.
 ├── src/extension.ts          — Extension entry point. Registers a WebviewViewProvider
 │                               that loads the built React app into the bottom panel.
 ├── webview-ui/               — Standalone React + TypeScript app (Vite)
-│   ├── src/App.tsx           — Root component (agent launcher + session buttons)
+│   ├── src/App.tsx           — Root component (office canvas + message handling)
+│   ├── src/office/           — Pixel art office UI (see "Office UI" section below)
 │   └── vite.config.ts        — Builds to ../dist/webview with relative base paths
 ├── esbuild.js                — Bundles the extension (src/) → dist/extension.js
 ├── dist/                     — Build output (gitignored)
@@ -82,7 +83,7 @@ Real-time display of what each Claude Code agent is doing (e.g., "Reading App.ts
    - `agentToolsClear { id }` — when a new user prompt is detected (clears stacked tools)
    - `agentStatus { id, status: 'waiting' | 'active' }` — when agent finishes turn or starts new work
    - `existingAgents { agents: number[] }` — sent on webview reconnect
-7. **Webview rendering**: Flat list of agent cards (no folders). "Open Claude Code" and "Sessions" buttons at top. Tools stack vertically below each agent button. Active tools show a blue pulsing dot; completed tools show a green solid dot (dimmed). When agent is waiting for input (no active tools + status='waiting'), shows amber dot with "Waiting for input".
+7. **Webview rendering**: Top-down pixel art office scene (Gather.town style). Each agent is an animated character at a desk. Tool status appears as hover tooltips over characters. "+" Agent and "Sessions" buttons float in the top-left corner. See "Office UI" section for full details.
 
 ### Key lessons learned
 
@@ -118,6 +119,104 @@ waitingTimers        — agentId → setTimeout (2s debounce for "waiting" statu
 ```
 
 **Persistence**: Agent-to-terminal mappings are persisted to `workspaceState` (key `'arcadia.agents'`) as `PersistedAgent[]`. On webview ready, `restoreAgents()` reads persisted state, matches each entry to a live terminal by name, and recreates the `AgentState`. File watching resumes from end-of-file (no replay). Entries whose terminals no longer exist are pruned. `nextAgentId` and `nextTerminalIndex` are advanced past restored values to avoid collisions.
+
+## Office UI (Pixel Art Scene)
+
+The webview renders a top-down pixel art office (Gather.town style) instead of a flat card list. Each AI agent is an animated character that sits at a desk when working and wanders when idle. The existing extension message protocol drives character behavior.
+
+### File structure
+
+All files live under `webview-ui/src/office/`:
+
+```
+office/
+  types.ts          — Constants (TILE_SIZE=16, SCALE=2, MAP 20x11), interfaces
+  sprites.ts        — Hardcoded pixel data for characters (6 palettes), furniture, tiles
+  spriteCache.ts    — Renders SpriteData → offscreen canvas, WeakMap cache by reference
+  tileMap.ts        — Office layout grid, desk slot positions, furniture placement
+  gameLoop.ts       — requestAnimationFrame loop with delta time (capped at 0.1s)
+  renderer.ts       — Canvas drawing: tiles (checkerboard), z-sorted furniture + characters
+  characters.ts     — Character state machine: idle/walk/type + wander AI
+  officeState.ts    — Central game world, bridges messages → character lifecycle
+  OfficeCanvas.tsx  — React component: canvas ref, ResizeObserver, DPR, mouse hit-testing
+  ToolOverlay.tsx   — HTML tooltip positioned over hovered character showing tool status
+```
+
+### How rendering works
+
+**Game state outside React**: An `OfficeState` class (module-level singleton in App.tsx) holds character positions, desk assignments, and animation state. It's updated imperatively by message handlers and read by the canvas every frame. React state is only used for HTML overlays (tool tooltips). This avoids re-renders in the hot path.
+
+**Sprite system**: Pixel data stored as 2D arrays of hex color strings (`SpriteData`). Rendered once to offscreen canvases at SCALE (2x) and cached via `WeakMap`. Characters use palette templates (`'skin'`, `'shirt'`, etc.) resolved at creation time into concrete hex colors. 6 distinct color palettes for agents.
+
+**Z-ordering**: All entities (furniture + characters) merged into a single array, sorted by Y-position before drawing. Lower on screen = drawn later = appears in front.
+
+**Canvas sizing**: Panel is typically 200-400px tall. At SCALE=2, each tile row = 32px. Map is 20 cols x 11 rows = 640x352 px at 2x. Centered in the canvas viewport. ResizeObserver + DPR scaling for crisp rendering on high-DPI displays.
+
+### Data flow
+
+```
+Extension messages → App.tsx handler → officeState.method() + React setState()
+                                              ↓
+                                    requestAnimationFrame loop
+                                              ↓
+                                    officeState.update(dt) → character movement
+                                              ↓
+                                    renderer draws to canvas (reads officeState)
+
+React state (agentTools etc.) → ToolOverlay component (HTML positioned over canvas)
+                              → AgentLabels component (name + status dot above each character)
+```
+
+### Character behavior
+
+- **Active (working)**: Character pathfinds (BFS) to assigned chair tile, sits down facing the desk, plays typing or reading animation depending on the active tool. Triggered by `agentToolStart` or `agentStatus: 'active'`.
+- **Idle (waiting)**: Character stands up from desk, wanders to random walkable tiles via BFS pathfinding with 2-5s pauses between moves. Triggered by `agentStatus: 'waiting'`. Walk animation has 4 frames per direction.
+- **Created**: Spawns at desk in typing state (assumes new agents are immediately active).
+- **Removed**: Character disappears, desk slot freed for next agent.
+
+### Movement system
+
+**Tile-based**: Characters move on a grid, one tile at a time in cardinal directions (no diagonals). BFS pathfinding navigates around walls, desks, and through doorways. Each step lerps pixel position from one tile center to the next.
+
+**4-directional sprites**: All states (idle, walk, typing, reading) have sprites for all 4 directions (down, up, left, right). Left sprites are generated by flipping right sprites horizontally. Direction is set by the current path step when walking, and by the desk slot's `facingDir` when sitting.
+
+**Tool-specific animations**: At desk, characters show either:
+- **Typing** animation (arms on keyboard): Write, Edit, Bash, NotebookEdit, Task, and unknown tools
+- **Reading** animation (arms at sides, looking at screen): Read, Grep, Glob, WebFetch, WebSearch
+
+Tool name is extracted from the status prefix (e.g., "Reading src/App.tsx" → Read tool → reading animation).
+
+### Office layout
+
+Two rooms connected by a doorway (col 10, rows 4-6):
+- **Left room** (tile floor, checkerboard pattern): 1 square desk (2x2 tiles) at (4,3)-(5,4), bookshelf on wall, plant in corner
+- **Right room** (wood floor): 1 square desk (2x2 tiles) at (13,3)-(14,4), water cooler, plant, whiteboard on wall
+- **Break area** (purple carpet): bottom-right corner of right room
+- Walls around perimeter + center divider
+
+### Desk system
+
+Each desk is 2x2 tiles with 4 chair positions (one per side), facing toward the desk center:
+- **Top chair**: 1 tile above desk, facing DOWN
+- **Bottom chair**: 1 tile below desk, facing UP
+- **Left chair**: 1 tile left of desk, facing RIGHT
+- **Right chair**: 1 tile right of desk, facing LEFT
+
+2 desks × 4 chairs = 8 slots total (supports up to 8 agents; 6 palettes cycle).
+
+### Interaction
+
+- **Hover** character → `ToolOverlay` tooltip appears showing agent name, active tools (blue pulsing dot), completed tools (green dot, dimmed), permission waits (amber), subagent tools (nested)
+- **Click** character → sends `focusAgent` message to extension, which focuses the terminal
+- **Name labels** float above each character with status dot (blue pulse = active, amber = waiting)
+- **"+ Agent" button** (top-left) creates new terminal + character
+- **"Sessions" button** opens JSONL folder in file explorer
+
+### TypeScript constraints
+
+- No `enum` (`erasableSyntaxOnly`) — use `as const` objects (e.g., `TileType`, `CharacterState`, `Direction`)
+- `import type` required for type-only imports (`verbatimModuleSyntax`)
+- `noUnusedLocals` / `noUnusedParameters` — every import must be used
 
 ## Memory
 
