@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "timestamp": "2026-02-14T17:53:44.465Z",
+  "timestamp": "2026-02-15T00:02:59.502Z",
   "sourceFile": "assets/office_tileset_16x16.png",
   "tileset": {
     "width": 256,
@@ -1087,74 +1087,82 @@
     {
       "id": "ASSET_61",
       "paddedX": 192,
-      "paddedY": 315,
+      "paddedY": 304,
       "paddedWidth": 16,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "TELEPHONE",
       "label": "Telephone",
       "category": "electronics",
       "footprintW": 1,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": false,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": true
+      "canPlaceOnSurfaces": true,
+      "backgroundTiles": 1,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_63",
       "paddedX": 32,
-      "paddedY": 330,
+      "paddedY": 319,
       "paddedWidth": 32,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "WINDOW_DOUBLE_WOOD",
       "label": "Double Pane Wood Window",
       "category": "decor",
       "footprintW": 2,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": false,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_64",
       "paddedX": 64,
-      "paddedY": 330,
+      "paddedY": 319,
       "paddedWidth": 32,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "WINDOW_DOUBLE_WHITE",
       "label": "Double Window White",
       "category": "decor",
       "footprintW": 2,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": true,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_65",
       "paddedX": 96,
-      "paddedY": 330,
+      "paddedY": 319,
       "paddedWidth": 32,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "WINDOW_DOUBLE_WHITE_2",
       "label": "White Double Window",
       "category": "decor",
       "footprintW": 2,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": false,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_71",
@@ -1241,28 +1249,32 @@
       "footprintH": 1,
       "isDesk": false,
       "colorEditable": false,
-      "discard": false,
+      "discard": true,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": false
     },
     {
       "id": "ASSET_84",
-      "paddedX": 16,
-      "paddedY": 360,
+      "paddedX": 15,
+      "paddedY": 352,
       "paddedWidth": 16,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "CLOCK_WALL_COLOR",
       "label": "Colorful Wall Clock",
       "category": "decor",
       "footprintW": 1,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": true,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_87",
@@ -1277,10 +1289,12 @@
       "footprintH": 1,
       "isDesk": false,
       "colorEditable": false,
-      "discard": false,
+      "discard": true,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": false
     },
     {
       "id": "ASSET_74",
@@ -1357,56 +1371,62 @@
     {
       "id": "ASSET_80",
       "paddedX": 80,
-      "paddedY": 362,
+      "paddedY": 351,
       "paddedWidth": 16,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "WOOD_WINDOW_SM",
       "label": "Small Wooden Window",
       "category": "decor",
       "footprintW": 1,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": true,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_81",
       "paddedX": 96,
-      "paddedY": 362,
+      "paddedY": 351,
       "paddedWidth": 16,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "WHITE_WINDOW_SM",
       "label": "Small White Window",
       "category": "decor",
       "footprintW": 1,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": false,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_82",
       "paddedX": 112,
-      "paddedY": 362,
+      "paddedY": 351,
       "paddedWidth": 16,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "WHITE_WINDOW_SM_2",
       "label": "Small White Window",
       "category": "decor",
       "footprintW": 1,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": false,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_90",
@@ -2837,115 +2857,127 @@
     {
       "id": "ASSET_101",
       "paddedX": 0,
-      "paddedY": 395,
+      "paddedY": 384,
       "paddedWidth": 32,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "PAINTING_LANDSCAPE",
       "label": "Landscape Painting",
       "category": "decor",
       "footprintW": 2,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": false,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_102",
       "paddedX": 32,
-      "paddedY": 395,
+      "paddedY": 384,
       "paddedWidth": 32,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "PAINTING_LANDSCAPE_2",
       "label": "Landscape Painting",
       "category": "decor",
       "footprintW": 2,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": false,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_103",
       "paddedX": 64,
-      "paddedY": 395,
+      "paddedY": 384,
       "paddedWidth": 16,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "PAINTING_SM",
       "label": "Small Painting",
       "category": "decor",
       "footprintW": 1,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": false,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_104",
       "paddedX": 80,
-      "paddedY": 395,
+      "paddedY": 384,
       "paddedWidth": 16,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "PAINTING_SM_2",
       "label": "Small Painting",
       "category": "decor",
       "footprintW": 1,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": false,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_105",
       "paddedX": 96,
-      "paddedY": 395,
+      "paddedY": 384,
       "paddedWidth": 16,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "PAINTING_SM_3",
       "label": "Small Painting",
       "category": "decor",
       "footprintW": 1,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": false,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_106",
       "paddedX": 112,
-      "paddedY": 395,
+      "paddedY": 384,
       "paddedWidth": 16,
-      "paddedHeight": 16,
+      "paddedHeight": 32,
       "name": "TEXT_FRAME",
       "label": "Framed Text",
       "category": "decor",
       "footprintW": 1,
-      "footprintH": 1,
+      "footprintH": 2,
       "isDesk": false,
       "colorEditable": false,
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_122",
       "paddedX": 0,
-      "paddedY": 418,
+      "paddedY": 415,
       "paddedWidth": 32,
       "paddedHeight": 32,
       "name": "CHALKBOARD_WALL_SM",
@@ -2955,12 +2987,17 @@
       "footprintH": 2,
       "isDesk": false,
       "colorEditable": false,
-      "discard": false
+      "discard": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true,
+      "canPlaceOnSurfaces": false,
+      "partOfGroup": false,
+      "groupId": null
     },
     {
       "id": "ASSET_118",
       "paddedX": 32,
-      "paddedY": 418,
+      "paddedY": 415,
       "paddedWidth": 32,
       "paddedHeight": 32,
       "name": "CHART_SM_1",
@@ -2973,12 +3010,14 @@
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_119",
       "paddedX": 64,
-      "paddedY": 418,
+      "paddedY": 415,
       "paddedWidth": 32,
       "paddedHeight": 32,
       "erasedPixels": [
@@ -3093,124 +3132,17 @@
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_120",
       "paddedX": 96,
-      "paddedY": 419,
+      "paddedY": 415,
       "paddedWidth": 32,
       "paddedHeight": 32,
-      "erasedPixels": [
-        {
-          "x": 10,
-          "y": 30
-        },
-        {
-          "x": 10,
-          "y": 31
-        },
-        {
-          "x": 9,
-          "y": 31
-        },
-        {
-          "x": 9,
-          "y": 30
-        },
-        {
-          "x": 11,
-          "y": 30
-        },
-        {
-          "x": 12,
-          "y": 30
-        },
-        {
-          "x": 11,
-          "y": 31
-        },
-        {
-          "x": 12,
-          "y": 31
-        },
-        {
-          "x": 13,
-          "y": 31
-        },
-        {
-          "x": 14,
-          "y": 31
-        },
-        {
-          "x": 15,
-          "y": 31
-        },
-        {
-          "x": 16,
-          "y": 31
-        },
-        {
-          "x": 17,
-          "y": 30
-        },
-        {
-          "x": 18,
-          "y": 30
-        },
-        {
-          "x": 19,
-          "y": 30
-        },
-        {
-          "x": 20,
-          "y": 30
-        },
-        {
-          "x": 21,
-          "y": 30
-        },
-        {
-          "x": 22,
-          "y": 30
-        },
-        {
-          "x": 23,
-          "y": 30
-        },
-        {
-          "x": 24,
-          "y": 31
-        },
-        {
-          "x": 23,
-          "y": 31
-        },
-        {
-          "x": 22,
-          "y": 31
-        },
-        {
-          "x": 21,
-          "y": 31
-        },
-        {
-          "x": 20,
-          "y": 31
-        },
-        {
-          "x": 19,
-          "y": 31
-        },
-        {
-          "x": 18,
-          "y": 31
-        },
-        {
-          "x": 17,
-          "y": 31
-        }
-      ],
+      "erasedPixels": [],
       "name": "CHART_1",
       "label": "Chart",
       "category": "decor",
@@ -3221,7 +3153,9 @@
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_114",
@@ -3455,7 +3389,7 @@
     {
       "id": "ASSET_134",
       "paddedX": 0,
-      "paddedY": 451,
+      "paddedY": 448,
       "paddedWidth": 32,
       "paddedHeight": 32,
       "erasedPixels": [
@@ -3566,7 +3500,9 @@
       "discard": false,
       "partOfGroup": false,
       "groupId": null,
-      "canPlaceOnSurfaces": false
+      "canPlaceOnSurfaces": false,
+      "backgroundTiles": 0,
+      "canPlaceOnWalls": true
     },
     {
       "id": "ASSET_138",

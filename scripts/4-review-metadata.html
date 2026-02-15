@@ -155,8 +155,8 @@
             <label for="f-isdesk">Is Desk</label>
           </div>
           <div class="checkbox-item">
-            <input id="f-color" type="checkbox">
-            <label for="f-color">Color Edit</label>
+            <input id="f-walls" type="checkbox">
+            <label for="f-walls">Can Place On Walls</label>
           </div>
         </div>
       </div>
@@ -333,7 +333,7 @@ function selectAsset(idx) {
   document.getElementById('f-fpw').value = asset.footprintW
   document.getElementById('f-fph').value = asset.footprintH
   document.getElementById('f-isdesk').checked = asset.isDesk
-  document.getElementById('f-color').checked = asset.colorEditable
+  document.getElementById('f-walls').checked = asset.canPlaceOnWalls
   document.getElementById('f-grouped').checked = asset.partOfGroup || false
   document.getElementById('f-group-id').value = asset.groupId || ''
   document.getElementById('f-group-id').style.display = (asset.partOfGroup || false) ? 'block' : 'none'
@@ -362,7 +362,7 @@ document.getElementById('btn-save').onclick = () => {
   asset.footprintW = +document.getElementById('f-fpw').value || asset.footprintW
   asset.footprintH = +document.getElementById('f-fph').value || asset.footprintH
   asset.isDesk = document.getElementById('f-isdesk').checked
-  asset.colorEditable = document.getElementById('f-color').checked
+  asset.canPlaceOnWalls = document.getElementById('f-walls').checked
   asset.partOfGroup = document.getElementById('f-grouped').checked
   asset.groupId = document.getElementById('f-group-id').value.trim() || null
   asset.canPlaceOnSurfaces = document.getElementById('f-ontop').checked

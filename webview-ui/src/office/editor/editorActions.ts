@@ -64,6 +64,13 @@ export function rotateFurniture(layout: OfficeLayout, uid: string, direction: 'c
   }
 }
 
+/** For wall items, offset the row so the bottom row aligns with the hovered tile. */
+export function getWallPlacementRow(type: string, row: number): number {
+  const entry = getCatalogEntry(type)
+  if (!entry?.canPlaceOnWalls) return row
+  return row - (entry.footprintH - 1)
+}
+
 /** Check if furniture can be placed at (col, row) without overlapping. */
 export function canPlaceFurniture(
   layout: OfficeLayout,
@@ -75,18 +82,33 @@ export function canPlaceFurniture(
   const entry = getCatalogEntry(type)
   if (!entry) return false
 
-  // Check bounds
-  if (col < 0 || row < 0 || col + entry.footprintW > MAP_COLS || row + entry.footprintH > MAP_ROWS) {
-    return false
+  // Check bounds — wall items may extend above the map (top rows hang above the wall)
+  if (entry.canPlaceOnWalls) {
+    const bottomRow = row + entry.footprintH - 1
+    if (col < 0 || col + entry.footprintW > MAP_COLS || bottomRow < 0 || bottomRow >= MAP_ROWS) {
+      return false
+    }
+  } else {
+    if (col < 0 || row < 0 || col + entry.footprintW > MAP_COLS || row + entry.footprintH > MAP_ROWS) {
+      return false
+    }
   }
 
-  // Check that no footprint tile is a wall (background rows may overlap walls)
+  // Wall placement check (background rows skip this check)
   const bgRows = entry.backgroundTiles || 0
   for (let dr = 0; dr < entry.footprintH; dr++) {
     if (dr < bgRows) continue
+    if (row + dr < 0) continue // row above map (wall items extending upward)
     for (let dc = 0; dc < entry.footprintW; dc++) {
       const idx = (row + dr) * layout.cols + (col + dc)
-      if (layout.tiles[idx] === TileType.WALL) return false
+      const isWall = layout.tiles[idx] === TileType.WALL
+      if (entry.canPlaceOnWalls) {
+        // Wall items: only the bottom row must be on wall tiles
+        if (dr === entry.footprintH - 1 && !isWall) return false
+      } else {
+        // Normal items cannot overlap walls
+        if (isWall) return false
+      }
     }
   }
 
@@ -113,6 +135,7 @@ export function canPlaceFurniture(
   const newBgRows = entry.backgroundTiles || 0
   for (let dr = 0; dr < entry.footprintH; dr++) {
     if (dr < newBgRows) continue // new item's background rows can overlap existing items
+    if (row + dr < 0) continue // row above map (wall items extending upward)
     for (let dc = 0; dc < entry.footprintW; dc++) {
       const key = `${col + dc},${row + dr}`
       if (occupied.has(key) && !(deskTiles?.has(key))) return false

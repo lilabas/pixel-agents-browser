@@ -29,7 +29,7 @@ interface Asset {
   footprintW: number
   footprintH: number
   isDesk: boolean
-  colorEditable: boolean
+  canPlaceOnWalls: boolean
   discard?: boolean
   partOfGroup?: boolean
   groupId?: string | null
@@ -49,7 +49,7 @@ interface CatalogEntry {
   footprintW: number
   footprintH: number
   isDesk: boolean
-  colorEditable: boolean
+  canPlaceOnWalls?: boolean
   groupId?: string
   orientation?: string
   canPlaceOnSurfaces?: boolean
@@ -179,7 +179,11 @@ for (const asset of assets) {
       footprintW: asset.footprintW,
       footprintH: asset.footprintH,
       isDesk: asset.isDesk,
-      colorEditable: asset.colorEditable,
+    }
+
+    // Wall placement flag
+    if (asset.canPlaceOnWalls) {
+      entry.canPlaceOnWalls = true
     }
 
     // Surface placement flag

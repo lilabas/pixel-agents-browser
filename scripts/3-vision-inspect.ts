@@ -3,7 +3,7 @@
  *
  * Uses Claude's vision API to analyze each asset and suggest:
  * - Name, Label, Category
- * - isDesk flag, colorEditable flag
+ * - isDesk flag, canPlaceOnWalls flag
  *
  * Usage:
  *   npx ts-node scripts/inspect-assets.ts
@@ -49,7 +49,7 @@ interface AssetWithMetadata {
   suggestedLabel?: string
   suggestedCategory?: string
   suggestedIsDesk?: boolean
-  suggestedColorEditable?: boolean
+  suggestedCanPlaceOnWalls?: boolean
 }
 
 const pngPath = './webview-ui/public/assets/office_tileset_16x16.png'
@@ -148,7 +148,7 @@ Return ONLY valid JSON on a single line (no markdown, no explanation):
   "label": "Human readable label (e.g., Wood Table Small, Spinning Chair)",
   "category": "one of: desks, chairs, storage, decor, electronics, misc",
   "isDesk": true/false,
-  "colorEditable": true/false
+  "canPlaceOnWalls": true/false
 }
 
 Guidelines:
@@ -156,7 +156,7 @@ Guidelines:
 - label: Title Case, human friendly
 - category: Pick the most specific category
 - isDesk: true only if it's a desk/table where agents sit
-- colorEditable: true if item could have hue/color variations (e.g., chairs, clothing, not wood tables)`
+- canPlaceOnWalls: true if item could be placed on wall tiles (e.g., wall art, shelves, clocks)`
 
   try {
     const response = await client.messages.create({
@@ -197,7 +197,7 @@ Guidelines:
     asset.suggestedLabel = data.label
     asset.suggestedCategory = data.category
     asset.suggestedIsDesk = data.isDesk
-    asset.suggestedColorEditable = data.colorEditable
+    asset.suggestedCanPlaceOnWalls = data.canPlaceOnWalls
 
     console.log(
       `   ✓ ${asset.suggestedName} | ${asset.suggestedLabel} | ${asset.suggestedCategory}`,
@@ -257,7 +257,7 @@ async function main() {
       footprintW: Math.max(1, Math.round(a.paddedWidth / 16)),
       footprintH: Math.max(1, Math.round(a.paddedHeight / 16)),
       isDesk: a.suggestedIsDesk || false,
-      colorEditable: a.suggestedColorEditable || false,
+      canPlaceOnWalls: a.suggestedCanPlaceOnWalls || false,
       discard: false,
     })),
   }

@@ -237,7 +237,7 @@ async function runStage4() {
   console.log('   1. View asset previews (4x zoom with grid)')
   console.log('   2. Edit metadata: name, label, category')
   console.log('   3. Set footprint dimensions (in tiles)')
-  console.log('   4. Mark special flags: isDesk, colorEditable, canPlaceOnSurfaces')
+  console.log('   4. Mark special flags: isDesk, canPlaceOnWalls, canPlaceOnSurfaces')
   console.log('   5. Mark assets to discard')
   console.log('   6. Auto-saves to localStorage every 2 seconds')
   console.log()

@@ -26,7 +26,7 @@ export interface FurnitureAsset {
   footprintW: number
   footprintH: number
   isDesk: boolean
-  colorEditable: boolean
+  canPlaceOnWalls: boolean
   partOfGroup?: boolean
   groupId?: string
   canPlaceOnSurfaces?: boolean

@@ -128,8 +128,8 @@ export interface FurnitureCatalogEntry {
   canPlaceOnSurfaces?: boolean
   /** Number of tile rows from the top of the footprint that are "background" (allow placement, still block walking). Default 0. */
   backgroundTiles?: number
-  /** Whether this item supports color editing via HSBC sliders */
-  colorEditable?: boolean
+  /** Whether this item can be placed on wall tiles */
+  canPlaceOnWalls?: boolean
 }
 
 export interface PlacedFurniture {
@@ -137,7 +137,7 @@ export interface PlacedFurniture {
   type: string // FurnitureType enum or asset ID
   col: number
   row: number
-  /** Optional color override for colorEditable furniture */
+  /** Optional color override for furniture */
   color?: FloorColor
 }
 

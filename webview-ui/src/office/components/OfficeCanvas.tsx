@@ -6,7 +6,7 @@ import { startGameLoop } from '../engine/gameLoop.js'
 import { renderFrame } from '../engine/renderer.js'
 import { TILE_SIZE, MAP_COLS, MAP_ROWS, EditTool } from '../types.js'
 import { getCatalogEntry, isRotatable } from '../layout/furnitureCatalog.js'
-import { canPlaceFurniture } from '../editor/editorActions.js'
+import { canPlaceFurniture, getWallPlacementRow } from '../editor/editorActions.js'
 import { vscode } from '../../vscodeApi.js'
 
 interface OfficeCanvasProps {
@@ -94,12 +94,14 @@ export function OfficeCanvas({ officeState, onHover, onClick, isEditMode, editor
           if (editorState.activeTool === EditTool.FURNITURE_PLACE && editorState.ghostCol >= 0) {
             const entry = getCatalogEntry(editorState.selectedFurnitureType)
             if (entry) {
+              const placementRow = getWallPlacementRow(editorState.selectedFurnitureType, editorState.ghostRow)
               editorRender.ghostSprite = entry.sprite
+              editorRender.ghostRow = placementRow
               editorRender.ghostValid = canPlaceFurniture(
                 officeState.getLayout(),
                 editorState.selectedFurnitureType,
                 editorState.ghostCol,
-                editorState.ghostRow,
+                placementRow,
               )
             }
           }

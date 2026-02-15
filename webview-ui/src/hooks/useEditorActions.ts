@@ -4,7 +4,7 @@ import type { EditorState } from '../office/editor/editorState.js'
 import { EditTool } from '../office/types.js'
 import { TileType } from '../office/types.js'
 import type { OfficeLayout, EditTool as EditToolType, TileType as TileTypeVal, FloorColor, PlacedFurniture } from '../office/types.js'
-import { paintTile, placeFurniture, removeFurniture, moveFurniture, rotateFurniture, canPlaceFurniture } from '../office/editor/editorActions.js'
+import { paintTile, placeFurniture, removeFurniture, moveFurniture, rotateFurniture, canPlaceFurniture, getWallPlacementRow } from '../office/editor/editorActions.js'
 import { getCatalogEntry, getRotatedType } from '../office/layout/furnitureCatalog.js'
 import { defaultZoom } from '../office/toolUtils.js'
 import { vscode } from '../vscodeApi.js'
@@ -335,9 +335,11 @@ export function useEditorActions(
         })
         editorState.selectedFurnitureUid = hit ? hit.uid : null
         setEditorTick((n) => n + 1)
-      } else if (canPlaceFurniture(layout, type, col, row)) {
+      } else {
+        const placementRow = getWallPlacementRow(type, row)
+        if (!canPlaceFurniture(layout, type, col, placementRow)) return
         const uid = `f-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-        const placed: PlacedFurniture = { uid, type, col, row }
+        const placed: PlacedFurniture = { uid, type, col, row: placementRow }
         if (editorState.pickedFurnitureColor) {
           placed.color = { ...editorState.pickedFurnitureColor }
         }

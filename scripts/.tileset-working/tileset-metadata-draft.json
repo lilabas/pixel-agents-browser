@@ -20,7 +20,7 @@
       "footprintW": 3,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -35,7 +35,7 @@
       "footprintW": 3,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -50,7 +50,7 @@
       "footprintW": 3,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -65,7 +65,7 @@
       "footprintW": 3,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -80,7 +80,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": true,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -95,7 +95,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -110,7 +110,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -125,7 +125,7 @@
       "footprintW": 3,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -140,7 +140,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -155,7 +155,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -170,7 +170,7 @@
       "footprintW": 3,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -185,7 +185,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -200,7 +200,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -215,7 +215,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -230,7 +230,7 @@
       "footprintW": 2,
       "footprintH": 3,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -245,7 +245,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -260,7 +260,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -275,7 +275,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -290,7 +290,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -305,7 +305,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -320,7 +320,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -335,7 +335,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -350,7 +350,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -365,7 +365,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -380,7 +380,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -395,7 +395,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -410,7 +410,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -425,7 +425,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -440,7 +440,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -455,7 +455,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -470,7 +470,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -485,7 +485,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -500,7 +500,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -515,7 +515,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -530,7 +530,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -545,7 +545,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -560,7 +560,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -575,7 +575,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -590,7 +590,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -605,7 +605,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -620,7 +620,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -765,7 +765,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -780,7 +780,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -795,7 +795,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -810,7 +810,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -825,7 +825,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -840,7 +840,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -855,7 +855,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -992,7 +992,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1007,7 +1007,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1022,7 +1022,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1037,7 +1037,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1052,7 +1052,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -1067,7 +1067,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1082,7 +1082,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -1097,7 +1097,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -1112,7 +1112,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -1209,7 +1209,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1224,7 +1224,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1239,7 +1239,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1254,7 +1254,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1269,7 +1269,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1284,7 +1284,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1299,7 +1299,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1314,7 +1314,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1329,7 +1329,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1344,7 +1344,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1359,7 +1359,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1374,7 +1374,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1389,7 +1389,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1404,7 +1404,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1419,7 +1419,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1434,7 +1434,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -1449,7 +1449,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2250,7 +2250,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -2575,7 +2575,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -2590,7 +2590,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2695,7 +2695,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2736,7 +2736,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2751,7 +2751,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2766,7 +2766,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2781,7 +2781,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2796,7 +2796,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2811,7 +2811,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2826,7 +2826,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2841,7 +2841,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2856,7 +2856,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2871,7 +2871,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2886,7 +2886,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -2901,7 +2901,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3018,7 +3018,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3143,7 +3143,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3158,7 +3158,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3173,7 +3173,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3188,7 +3188,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -3203,7 +3203,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3284,7 +3284,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3299,7 +3299,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3314,7 +3314,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3411,7 +3411,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -3426,7 +3426,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3539,7 +3539,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3554,7 +3554,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3569,7 +3569,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3584,7 +3584,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3599,7 +3599,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3614,7 +3614,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3629,7 +3629,7 @@
       "footprintW": 1,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3644,7 +3644,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3659,7 +3659,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3674,7 +3674,7 @@
       "footprintW": 2,
       "footprintH": 2,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3689,7 +3689,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3704,7 +3704,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3719,7 +3719,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -3734,7 +3734,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3749,7 +3749,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -3764,7 +3764,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -3779,7 +3779,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -4012,7 +4012,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -4097,7 +4097,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -4112,7 +4112,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -4127,7 +4127,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     },
     {
@@ -4142,7 +4142,7 @@
       "footprintW": 2,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": true,
+      "canPlaceOnWalls": true,
       "discard": false
     },
     {
@@ -4157,7 +4157,7 @@
       "footprintW": 1,
       "footprintH": 1,
       "isDesk": false,
-      "colorEditable": false,
+      "canPlaceOnWalls": false,
       "discard": false
     }
   ]

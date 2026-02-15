@@ -317,8 +317,8 @@
           <label for="f-isdesk">Is Desk</label>
         </div>
         <div class="checkbox-item">
-          <input id="f-color" type="checkbox">
-          <label for="f-color">Color Editable</label>
+          <input id="f-walls" type="checkbox">
+          <label for="f-walls">Can Place On Walls</label>
         </div>
         <div class="checkbox-item">
           <input id="f-ontop" type="checkbox">
@@ -709,7 +709,7 @@ function loadForm(idx) {
   document.getElementById('f-fph').value = a.footprintH || 1
   document.getElementById('f-bgtiles').value = a.backgroundTiles || 0
   document.getElementById('f-isdesk').checked = !!a.isDesk
-  document.getElementById('f-color').checked = !!a.colorEditable
+  document.getElementById('f-walls').checked = !!a.canPlaceOnWalls
   document.getElementById('f-ontop').checked = !!a.canPlaceOnSurfaces
   document.getElementById('f-grouped').checked = !!a.partOfGroup
   document.getElementById('f-group-id').value = a.groupId || ''
@@ -789,7 +789,7 @@ document.getElementById('btn-save').onclick = () => {
   a.backgroundTiles = +document.getElementById('f-bgtiles').value || 0
   // Flags
   a.isDesk = document.getElementById('f-isdesk').checked
-  a.colorEditable = document.getElementById('f-color').checked
+  a.canPlaceOnWalls = document.getElementById('f-walls').checked
   a.canPlaceOnSurfaces = document.getElementById('f-ontop').checked
   // Rotation
   a.partOfGroup = document.getElementById('f-grouped').checked
@@ -1304,7 +1304,7 @@ function createNewAsset(x, y, w, h) {
     footprintW: fpW,
     footprintH: fpH,
     isDesk: false,
-    colorEditable: false,
+    canPlaceOnWalls: false,
     discard: false
   }
 

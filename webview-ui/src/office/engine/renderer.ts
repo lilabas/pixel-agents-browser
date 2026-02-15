@@ -449,7 +449,7 @@ export function renderFrame(
     if (editor.showGrid) {
       renderGridOverlay(ctx, offsetX, offsetY, zoom)
     }
-    if (editor.ghostSprite && editor.ghostCol >= 0 && editor.ghostRow >= 0) {
+    if (editor.ghostSprite && editor.ghostCol >= 0) {
       renderGhostPreview(ctx, editor.ghostSprite, editor.ghostCol, editor.ghostRow, editor.ghostValid, offsetX, offsetY, zoom)
     }
     if (editor.hasSelection) {
