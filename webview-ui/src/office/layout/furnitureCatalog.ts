@@ -38,7 +38,7 @@ export interface LoadedAssetData {
   sprites: Record<string, SpriteData>
 }
 
-export type FurnitureCategory = 'desks' | 'chairs' | 'storage' | 'decor' | 'electronics' | 'misc'
+export type FurnitureCategory = 'desks' | 'chairs' | 'storage' | 'decor' | 'electronics' | 'wall' | 'misc'
 
 export interface CatalogEntryWithCategory extends FurnitureCatalogEntry {
   category: FurnitureCategory
@@ -213,6 +213,7 @@ export const FURNITURE_CATEGORIES: Array<{ id: FurnitureCategory; label: string 
   { id: 'storage', label: 'Storage' },
   { id: 'electronics', label: 'Tech' },
   { id: 'decor', label: 'Decor' },
+  { id: 'wall', label: 'Wall' },
   { id: 'misc', label: 'Misc' },
 ]
 

@@ -119,7 +119,7 @@ Toggle via "Layout" button. Tools: SELECT (default), Floor paint, Wall paint, Fu
 
 **Loading**: `esbuild.js` copies `webview-ui/public/assets/` → `dist/assets/`. Loader checks bundled path first, falls back to workspace root. PNG → pngjs → SpriteData (2D hex array, alpha≥128 = opaque).
 
-**Catalog**: `furniture-catalog.json` with id, name, label, category, footprint, isDesk, canPlaceOnWalls, groupId?, orientation?, canPlaceOnSurfaces?, backgroundTiles?. String-based type system (no enum constraint). Rotation groups: `buildDynamicCatalog()` builds `rotationGroups` Map, shows 1 item per group in editor.
+**Catalog**: `furniture-catalog.json` with id, name, label, category, footprint, isDesk, canPlaceOnWalls, groupId?, orientation?, canPlaceOnSurfaces?, backgroundTiles?. String-based type system (no enum constraint). Categories: desks, chairs, storage, electronics, decor, wall, misc. Wall-placeable items (`canPlaceOnWalls: true`) use the `wall` category and appear in a dedicated "Wall" tab in the editor. Rotation groups: `buildDynamicCatalog()` builds `rotationGroups` Map, shows 1 item per group in editor.
 
 **Background tiles**: `backgroundTiles?: number` on `FurnitureCatalogEntry` — top N footprint rows allow other furniture to be placed on them. Items on background rows render behind the host furniture via z-sort (lower zY). `getPlacementBlockedTiles()` skips bg rows for occupied set; `canPlaceFurniture()` also skips the new item's own bg rows (symmetric placement). Walking is still blocked (`getBlockedTiles()` unchanged). Set via asset-manager.html "Background Tiles" field.
 

@@ -337,6 +337,7 @@ export function EditorToolbar({
               <ColorSlider label="C" value={wallColor.c} min={-100} max={100} onChange={(v) => handleWallColorChange('c', v)} />
             </div>
           )}
+
         </div>
       )}
 
