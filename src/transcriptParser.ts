@@ -64,6 +64,7 @@ export function processTranscriptLine(
 			if (hasToolUse) {
 				cancelWaitingTimer(agentId, waitingTimers);
 				agent.isWaiting = false;
+				agent.hadToolsInTurn = true;
 				webview?.postMessage({ type: 'agentStatus', id: agentId, status: 'active' });
 				let hasNonExemptTool = false;
 				for (const block of blocks) {
@@ -88,10 +89,10 @@ export function processTranscriptLine(
 				if (hasNonExemptTool) {
 					startPermissionTimer(agentId, agents, permissionTimers, PERMISSION_EXEMPT_TOOLS, webview);
 				}
-			} else if (blocks.some(b => b.type === 'text')) {
-				// Text-only response (no tool_use). Could be intermediate (planning)
-				// or the final response. turn_duration handles tool-using turns but is
-				// never emitted for text-only turns, so we use a silence-based timer:
+			} else if (blocks.some(b => b.type === 'text') && !agent.hadToolsInTurn) {
+				// Text-only response in a turn that hasn't used any tools.
+				// turn_duration handles tool-using turns reliably but is never
+				// emitted for text-only turns, so we use a silence-based timer:
 				// if no new JSONL data arrives within TEXT_IDLE_DELAY_MS, mark as waiting.
 				startWaitingTimer(agentId, TEXT_IDLE_DELAY_MS, agents, waitingTimers, webview);
 			}
@@ -130,13 +131,22 @@ export function processTranscriptLine(
 							}, TOOL_DONE_DELAY_MS);
 						}
 					}
+					// All tools completed — allow text-idle timer as fallback
+					// for turn-end detection when turn_duration is not emitted
+					if (agent.activeToolIds.size === 0) {
+						agent.hadToolsInTurn = false;
+					}
 				} else {
+					// New user text prompt — new turn starting
 					cancelWaitingTimer(agentId, waitingTimers);
 					clearAgentActivity(agent, agentId, permissionTimers, webview);
+					agent.hadToolsInTurn = false;
 				}
 			} else if (typeof content === 'string' && content.trim()) {
+				// New user text prompt — new turn starting
 				cancelWaitingTimer(agentId, waitingTimers);
 				clearAgentActivity(agent, agentId, permissionTimers, webview);
+				agent.hadToolsInTurn = false;
 			}
 		} else if (record.type === 'system' && record.subtype === 'turn_duration') {
 			cancelWaitingTimer(agentId, waitingTimers);
@@ -154,6 +164,7 @@ export function processTranscriptLine(
 
 			agent.isWaiting = true;
 			agent.permissionSent = false;
+			agent.hadToolsInTurn = false;
 			webview?.postMessage({
 				type: 'agentStatus',
 				id: agentId,

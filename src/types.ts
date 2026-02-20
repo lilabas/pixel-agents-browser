@@ -14,6 +14,7 @@ export interface AgentState {
 	activeSubagentToolNames: Map<string, Map<string, string>>; // parentToolId → (subToolId → toolName)
 	isWaiting: boolean;
 	permissionSent: boolean;
+	hadToolsInTurn: boolean;
 }
 
 export interface PersistedAgent {

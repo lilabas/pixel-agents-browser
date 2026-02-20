@@ -67,6 +67,7 @@ export function launchNewTerminal(
 		activeSubagentToolNames: new Map(),
 		isWaiting: false,
 		permissionSent: false,
+		hadToolsInTurn: false,
 	};
 
 	agents.set(id, agent);
@@ -188,6 +189,7 @@ export function restoreAgents(
 			activeSubagentToolNames: new Map(),
 			isWaiting: false,
 			permissionSent: false,
+			hadToolsInTurn: false,
 		};
 
 		agents.set(p.id, agent);

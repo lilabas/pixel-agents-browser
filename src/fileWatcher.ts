@@ -196,6 +196,7 @@ function adoptTerminalForFile(
 		activeSubagentToolNames: new Map(),
 		isWaiting: false,
 		permissionSent: false,
+		hadToolsInTurn: false,
 	};
 
 	agents.set(id, agent);
