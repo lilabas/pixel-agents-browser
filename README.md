@@ -34,16 +34,16 @@ cd pixel-agents
 npm install
 cd server && npm install && cd ..
 cd webview-ui && npm install && cd ..
-npm run build
-npm start
+npm run dev
 ```
 
-Then open `http://localhost:3100` in your browser.
+Then open `http://localhost:5173` in your browser.
 
-For development with hot reload:
+For a production build:
 
 ```bash
-npm run dev
+npm run build
+npm start
 ```
 
 ### Usage
