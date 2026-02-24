@@ -1,4 +1,4 @@
-# Pixel Agents
+# Pixel Agents - Browser Edition
 
 A standalone browser app that turns your Claude Code agents into animated pixel art characters in a virtual office.
 
