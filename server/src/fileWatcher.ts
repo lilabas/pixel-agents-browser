@@ -8,11 +8,13 @@ import { removeAgent } from './agentManager.js';
 import { FILE_WATCHER_POLL_INTERVAL_MS, PROJECT_SCAN_INTERVAL_MS } from './constants.js';
 
 const SUBAGENT_STALE_MS = 30 * 1000; // Remove subagents inactive for 30s
+const AGENT_STALE_MS = 5 * 60 * 1000; // Remove parent agents inactive for 5 min
 
 /**
- * Remove subagent entries whose JSONL files haven't been modified recently.
+ * Remove agent entries whose JSONL files haven't been modified recently.
+ * Subagents use a 30s threshold; parent agents use 5 minutes.
  */
-export function cleanupStaleSubagents(
+export function cleanupStaleAgents(
 	agents: Map<number, AgentState>,
 	fileWatchers: Map<number, fs.FSWatcher>,
 	pollingTimers: Map<number, ReturnType<typeof setInterval>>,
@@ -23,11 +25,12 @@ export function cleanupStaleSubagents(
 	persistAgents: () => void,
 ): void {
 	for (const [id, agent] of agents) {
-		if (!agent.jsonlFile.includes('/subagents/')) continue;
+		const isSubagent = agent.jsonlFile.includes('/subagents/');
+		const staleMs = isSubagent ? SUBAGENT_STALE_MS : AGENT_STALE_MS;
 		try {
 			const stat = fs.statSync(agent.jsonlFile);
-			if (Date.now() - stat.mtimeMs > SUBAGENT_STALE_MS) {
-				console.log(`[Pixel Agents] Removing stale subagent ${id}`);
+			if (Date.now() - stat.mtimeMs > staleMs) {
+				console.log(`[Pixel Agents] Removing stale ${isSubagent ? 'subagent' : 'agent'} ${id}`);
 				removeAgent(id, agents, fileWatchers, pollingTimers, waitingTimers, permissionTimers, jsonlPollTimers, persistAgents);
 				webview?.postMessage({ type: 'agentClosed', id });
 			}

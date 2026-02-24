@@ -92,17 +92,17 @@ export function restoreAgents(
 
 	let maxId = 0;
 	let restoredProjectDir: string | null = null;
-	const ONE_HOUR_MS = 60 * 60 * 1000;
+	const RESTORE_STALE_MS = 5 * 60 * 1000; // 5 minutes — matches cleanup threshold
 
 	for (const p of persisted) {
 		// Skip subagent sessions — they are transient and discovered dynamically
 		if (p.jsonlFile.includes('/subagents/')) continue;
 
-		// Only restore if JSONL file exists and was modified within the last hour
+		// Only restore if JSONL file exists and was recently active
 		try {
 			if (!fs.existsSync(p.jsonlFile)) continue;
 			const stat = fs.statSync(p.jsonlFile);
-			if (Date.now() - stat.mtimeMs > ONE_HOUR_MS) continue;
+			if (Date.now() - stat.mtimeMs > RESTORE_STALE_MS) continue;
 		} catch {
 			continue;
 		}

@@ -5,7 +5,7 @@ import {
 	removeAgent, persistAgents, restoreAgents,
 	sendExistingAgents, sendLayout, getProjectDirPath, autoDiscoverAgents,
 } from './agentManager.js';
-import { ensureProjectScan, cleanupStaleSubagents } from './fileWatcher.js';
+import { ensureProjectScan, cleanupStaleAgents } from './fileWatcher.js';
 import {
 	loadFurnitureAssets, sendAssetsToWebview, loadFloorTiles,
 	sendFloorTilesToWebview, loadWallTiles, sendWallTilesToWebview,
@@ -124,10 +124,10 @@ export class PixelAgentsSession {
 					);
 				}
 
-				// Periodically clean up stale subagents
+				// Periodically clean up stale agents
 				if (!this.cleanupTimer) {
 					this.cleanupTimer = setInterval(() => {
-						cleanupStaleSubagents(
+						cleanupStaleAgents(
 							this.agents, this.fileWatchers, this.pollingTimers,
 							this.waitingTimers, this.permissionTimers, this.jsonlPollTimers,
 							this.bridge, this.persistAgentsBound,
