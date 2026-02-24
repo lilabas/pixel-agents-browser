@@ -1,24 +1,21 @@
 # Pixel Agents
 
-A VS Code extension that turns your AI coding agents into animated pixel art characters in a virtual office.
+A standalone browser app that turns your Claude Code agents into animated pixel art characters in a virtual office.
 
-Each Claude Code terminal you open spawns a character that walks around, sits at desks, and visually reflects what the agent is doing — typing when writing code, reading when searching files, waiting when it needs your attention.
-
-This is the source code for the free [Pixel Agents extension for VS Code](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents) — you can install it directly from the marketplace with the full furniture catalog included.
-
+Pixel Agents auto-discovers running Claude Code sessions in your project and brings them to life as characters that walk around, sit at desks, and visually reflect what each agent is doing — typing when writing code, reading when searching files, waiting when it needs your attention. It's purely observational — no modifications to Claude Code are needed.
 
 ![Pixel Agents screenshot](webview-ui/public/Screenshot.jpg)
 
 ## Features
 
-- **One agent, one character** — every Claude Code terminal gets its own animated character
+- **Auto-discovery** — running Claude Code sessions are automatically detected and visualized as characters
 - **Live activity tracking** — characters animate based on what the agent is actually doing (writing, reading, running commands)
+- **Sub-agent visualization** — Task tool sub-agents spawn as separate characters that appear while active and disappear when done
 - **Office layout editor** — design your office with floors, walls, and furniture using a built-in editor
 - **Speech bubbles** — visual indicators when an agent is waiting for input or needs permission
 - **Sound notifications** — optional chime when an agent finishes its turn
-- **Sub-agent visualization** — Task tool sub-agents spawn as separate characters linked to their parent
-- **Persistent layouts** — your office design is saved and shared across VS Code windows
-- **Diverse characters** — 6 diverse characters.
+- **Persistent layouts** — your office design is saved across sessions
+- **Diverse characters** — 6 diverse character sprites with customizable palettes
 
 <p align="center">
   <img src="webview-ui/public/characters.png" alt="Pixel Agents characters" width="320" height="72" style="image-rendering: pixelated;">
@@ -26,30 +23,34 @@ This is the source code for the free [Pixel Agents extension for VS Code](https:
 
 ## Requirements
 
-- VS Code 1.109.0 or later
+- Node.js 18+
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed and configured
 
 ## Getting Started
-
-If you just want to use Pixel Agents, the easiest way is to download the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents). If you want to play with the code, develop, or contribute, then:
-
-### Install from source
 
 ```bash
 git clone https://github.com/pablodelucca/pixel-agents.git
 cd pixel-agents
 npm install
+cd server && npm install && cd ..
 cd webview-ui && npm install && cd ..
 npm run build
+npm start
 ```
 
-Then press **F5** in VS Code to launch the Extension Development Host.
+Then open `http://localhost:3100` in your browser.
+
+For development with hot reload:
+
+```bash
+npm run dev
+```
 
 ### Usage
 
-1. Open the **Pixel Agents** panel (it appears in the bottom panel area alongside your terminal)
-2. Click **+ Agent** to spawn a new Claude Code terminal and its character
-3. Start coding with Claude — watch the character react in real time
+1. Start Pixel Agents and open the browser
+2. Open Claude Code in a terminal pointed at the same project directory
+3. Characters appear automatically as Claude Code sessions become active
 4. Click a character to select it, then click a seat to reassign it
 5. Click **Layout** to open the office editor and customize your space
 
@@ -57,54 +58,50 @@ Then press **F5** in VS Code to launch the Extension Development Host.
 
 The built-in editor lets you design your office:
 
-- **Floor** — Full HSB color control
-- **Walls** — Auto-tiling walls with color customization
-- **Tools** — Select, paint, erase, place, eyedropper, pick
+- **Floor** — full HSB color control
+- **Walls** — auto-tiling walls with color customization
+- **Tools** — select, paint, erase, place, eyedropper, pick
 - **Undo/Redo** — 50 levels with Ctrl+Z / Ctrl+Y
-- **Export/Import** — Share layouts as JSON files via the Settings modal
+- **Export/Import** — share layouts as JSON files via the Settings modal
 
-The grid is expandable up to 64×64 tiles. Click the ghost border outside the current grid to grow it.
+The grid is expandable up to 64x64 tiles. Click the ghost border outside the current grid to grow it.
 
 ### Office Assets
 
-The office tileset used in this project and available via the extension is **[Office Interior Tileset (16x16)](https://donarg.itch.io/officetileset)** by **Donarg**, available on itch.io for **$2 USD**.
+The office tileset used in this project is **[Office Interior Tileset (16x16)](https://donarg.itch.io/officetileset)** by **Donarg**, available on itch.io for **$2 USD**.
 
-This is the only part of the project that is not freely available. The tileset is not included in this repository due to its license. To use Pixel Agents locally with the full set of office furniture and decorations, purchase the tileset and run the asset import pipeline:
+This is the only part of the project that is not freely available. The tileset is not included in this repository due to its license. To use the full set of office furniture and decorations, purchase the tileset and run the asset import pipeline:
 
 ```bash
 npm run import-tileset
 ```
 
-Fair warning: the import pipeline is not exactly straightforward — the out-of-the-box tileset assets aren't the easiest to work with, and while I've done my best to make the process as smooth as possible, it may require some manual tweaking. If you have experience creating pixel art office assets and would like to contribute freely usable tilesets for the community, that would be hugely appreciated.
-
-The extension will still work without the tileset — you'll get the default characters and basic layout, but the full furniture catalog requires the imported assets.
+The app will still work without the tileset — you'll get the default characters and basic layout, but the full furniture catalog requires the imported assets.
 
 ## How It Works
 
-Pixel Agents watches Claude Code's JSONL transcript files to track what each agent is doing. When an agent uses a tool (like writing a file or running a command), the extension detects it and updates the character's animation accordingly. No modifications to Claude Code are needed — it's purely observational.
+Pixel Agents watches Claude Code's JSONL transcript files (in `~/.claude/projects/`) to track what each agent is doing. When an agent uses a tool (like writing a file or running a command), it detects the activity and updates the character's animation accordingly. Sub-agents spawned via the Task tool are discovered in their session's `subagents/` directory and automatically cleaned up when they finish.
 
-The webview runs a lightweight game loop with canvas rendering, BFS pathfinding, and a character state machine (idle → walk → type/read). Everything is pixel-perfect at integer zoom levels.
+The frontend runs a lightweight game loop with canvas rendering, BFS pathfinding, and a character state machine (idle -> walk -> type/read). Everything is pixel-perfect at integer zoom levels.
 
 ## Tech Stack
 
-- **Extension**: TypeScript, VS Code Webview API, esbuild
-- **Webview**: React 19, TypeScript, Vite, Canvas 2D
+- **Server**: Node.js, Express, WebSocket, TypeScript
+- **Client**: React 19, TypeScript, Vite, Canvas 2D
 
 ## Known Limitations
 
-- **Agent-terminal sync** — the way agents are connected to Claude Code terminal instances is not super robust and sometimes desyncs, especially when terminals are rapidly opened/closed or restored across sessions.
-- **Heuristic-based status detection** — Claude Code's JSONL transcript format does not provide clear signals for when an agent is waiting for user input or when it has finished its turn. The current detection is based on heuristics (idle timers, turn-duration events) and often misfires — agents may briefly show the wrong status or miss transitions.
-- **Windows-only testing** — the extension has only been tested on Windows 11. It may work on macOS or Linux, but there could be unexpected issues with file watching, paths, or terminal behavior on those platforms.
+- **Heuristic-based status detection** — Claude Code's JSONL transcript format does not provide clear signals for when an agent is waiting for user input or when it has finished its turn. The current detection is based on heuristics (idle timers, turn-duration events) and can misfire — agents may briefly show the wrong status or miss transitions.
+- **macOS tested** — the app has primarily been tested on macOS. It should work on Linux but may have issues on Windows with file path handling.
 
 ## Roadmap
 
 There are several areas where contributions would be very welcome:
 
-- **Improve agent-terminal reliability** — more robust connection and sync between characters and Claude Code instances
 - **Better status detection** — find or propose clearer signals for agent state transitions (waiting, done, permission needed)
 - **Community assets** — freely usable pixel art tilesets or characters that anyone can use without purchasing third-party assets
 - **Agent creation and definition** — define agents with custom skills, system prompts, names, and skins before launching them
-- **Desks as directories** — click on a desk to select a working directory, drag and drop agents or click-to-assign to move them to specific desks/projects
+- **Desks as directories** — click on a desk to select a working directory, drag and drop agents to move them to specific desks/projects
 - **Claude Code agent teams** — native support for [agent teams](https://code.claude.com/docs/en/agent-teams), visualizing multi-agent coordination and communication
 - **Git worktree support** — agents working in different worktrees to avoid conflict from parallel work on the same files
 - **Support for other agentic frameworks** — [OpenCode](https://github.com/nichochar/opencode), or really any kind of agentic experiment you'd want to run inside a pixel art interface (see [simile.ai](https://simile.ai/) for inspiration)

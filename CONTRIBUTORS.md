@@ -8,8 +8,7 @@ This project is licensed under the [MIT License](LICENSE), so your contributions
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (LTS recommended)
-- [VS Code](https://code.visualstudio.com/) (v1.109.0 or later)
+- [Node.js](https://nodejs.org/) 18+ (LTS recommended)
 
 ### Setup
 
@@ -17,40 +16,42 @@ This project is licensed under the [MIT License](LICENSE), so your contributions
 git clone https://github.com/pablodelucca/pixel-agents.git
 cd pixel-agents
 npm install
+cd server && npm install && cd ..
 cd webview-ui && npm install && cd ..
-npm run build
 ```
-
-Then press **F5** in VS Code to launch the Extension Development Host.
 
 ## Development Workflow
 
-For development with live rebuilds, run:
+For development with hot reload:
 
 ```bash
-npm run watch
+npm run dev
 ```
 
-This starts parallel watchers for both the extension backend (esbuild) and TypeScript type-checking.
+This starts the server (with `tsx watch`) and the Vite dev server in parallel. Open `http://localhost:3100` (or the port shown in the terminal) in your browser.
 
-> **Note:** The webview (Vite) is not included in `watch` — after changing webview code, run `npm run build:webview` or the full `npm run build`.
+For a production build:
+
+```bash
+npm run build
+npm start
+```
 
 ### Project Structure
 
 | Directory | Description |
 |---|---|
-| `src/` | Extension backend — Node.js, VS Code API |
-| `webview-ui/` | React + TypeScript frontend (separate Vite project) |
+| `server/` | Node.js backend — Express, WebSocket, JSONL file watching |
+| `webview-ui/` | React + TypeScript frontend (Vite project) |
 | `scripts/` | Asset extraction and generation tooling |
-| `assets/` | Bundled sprites, catalog, and default layout |
 
 ## Code Guidelines
 ### Constants
 
 **No unused locals or parameters** (`noUnusedLocals` and `noUnusedParameters` are enabled): All magic numbers and strings are centralized — don't add inline constants to source files:
 
-- **Extension backend:** `src/constants.ts`
-- **Webview:** `webview-ui/src/constants.ts`
+- **Server:** `server/src/constants.ts`
+- **Client:** `webview-ui/src/constants.ts`
 - **CSS variables:** `webview-ui/src/index.css` `:root` block (`--pixel-*` properties)
 
 ### UI Styling
@@ -70,7 +71,7 @@ The project uses a pixel art aesthetic. All overlays should use:
    ```bash
    npm run build
    ```
-   This runs type-checking, linting, esbuild (extension), and Vite (webview).
+   This runs TypeScript compilation (server) and Vite build (client).
 4. Open a pull request against `main` with:
    - A clear description of what changed and why
    - How you tested the changes (steps to reproduce / verify)
@@ -83,7 +84,7 @@ The project uses a pixel art aesthetic. All overlays should use:
 - What you expected to happen
 - What actually happened
 - Steps to reproduce
-- VS Code version and OS
+- Node.js version and OS
 
 ## Feature Requests
 
