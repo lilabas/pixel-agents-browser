@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { vscode } from '../vscodeApi.js'
+import { vscode } from '../wsClient.js'
 import { isSoundEnabled, setSoundEnabled } from '../notificationSound.js'
 
 interface SettingsModalProps {
@@ -94,20 +94,6 @@ export function SettingsModal({ isOpen, onClose, isDebugMode, onToggleDebugMode 
         {/* Menu items */}
         <button
           onClick={() => {
-            vscode.postMessage({ type: 'openSessionsFolder' })
-            onClose()
-          }}
-          onMouseEnter={() => setHovered('sessions')}
-          onMouseLeave={() => setHovered(null)}
-          style={{
-            ...menuItemBase,
-            background: hovered === 'sessions' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-          }}
-        >
-          Open Sessions Folder
-        </button>
-        <button
-          onClick={() => {
             vscode.postMessage({ type: 'exportLayout' })
             onClose()
           }}
@@ -120,11 +106,7 @@ export function SettingsModal({ isOpen, onClose, isDebugMode, onToggleDebugMode 
         >
           Export Layout
         </button>
-        <button
-          onClick={() => {
-            vscode.postMessage({ type: 'importLayout' })
-            onClose()
-          }}
+        <label
           onMouseEnter={() => setHovered('import')}
           onMouseLeave={() => setHovered(null)}
           style={{
@@ -133,7 +115,27 @@ export function SettingsModal({ isOpen, onClose, isDebugMode, onToggleDebugMode 
           }}
         >
           Import Layout
-        </button>
+          <input
+            type="file"
+            accept=".json"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              const reader = new FileReader()
+              reader.onload = () => {
+                try {
+                  const layout = JSON.parse(reader.result as string)
+                  vscode.postMessage({ type: 'importLayoutData', layout })
+                } catch {
+                  console.error('[Pixel Agents] Failed to parse imported layout')
+                }
+              }
+              reader.readAsText(file)
+              onClose()
+            }}
+          />
+        </label>
         <button
           onClick={() => {
             const newVal = !isSoundEnabled()

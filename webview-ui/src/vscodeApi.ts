@@ -1,3 +1,2 @@
-declare function acquireVsCodeApi(): { postMessage(msg: unknown): void }
-
-export const vscode = acquireVsCodeApi()
+// Re-export from wsClient for backwards compatibility
+export { vscode } from './wsClient.js'

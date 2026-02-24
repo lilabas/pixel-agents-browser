@@ -4,6 +4,13 @@ node_modules
 .vscode-test/
 *.vsix
 .claude/
-/logs
+logs/
 /sprites-export
 .env
+docs/
+specs/
+webview-ui/public/assets/furniture/
+webview-ui/public/assets/office_tileset_16x16.png
+scripts/.tileset-working/
+server/node_modules/
+server/dist/
