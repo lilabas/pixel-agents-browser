@@ -4,7 +4,40 @@ import type { WebviewBridge } from './wsServer.js';
 import type { AgentState } from './types.js';
 import { cancelWaitingTimer, cancelPermissionTimer, clearAgentActivity } from './timerManager.js';
 import { processTranscriptLine } from './transcriptParser.js';
+import { removeAgent } from './agentManager.js';
 import { FILE_WATCHER_POLL_INTERVAL_MS, PROJECT_SCAN_INTERVAL_MS } from './constants.js';
+
+const SUBAGENT_STALE_MS = 30 * 1000; // Remove subagents inactive for 30s
+
+/**
+ * Remove subagent entries whose JSONL files haven't been modified recently.
+ */
+export function cleanupStaleSubagents(
+	agents: Map<number, AgentState>,
+	fileWatchers: Map<number, fs.FSWatcher>,
+	pollingTimers: Map<number, ReturnType<typeof setInterval>>,
+	waitingTimers: Map<number, ReturnType<typeof setTimeout>>,
+	permissionTimers: Map<number, ReturnType<typeof setTimeout>>,
+	jsonlPollTimers: Map<number, ReturnType<typeof setInterval>>,
+	webview: WebviewBridge | undefined,
+	persistAgents: () => void,
+): void {
+	for (const [id, agent] of agents) {
+		if (!agent.jsonlFile.includes('/subagents/')) continue;
+		try {
+			const stat = fs.statSync(agent.jsonlFile);
+			if (Date.now() - stat.mtimeMs > SUBAGENT_STALE_MS) {
+				console.log(`[Pixel Agents] Removing stale subagent ${id}`);
+				removeAgent(id, agents, fileWatchers, pollingTimers, waitingTimers, permissionTimers, jsonlPollTimers, persistAgents);
+				webview?.postMessage({ type: 'agentClosed', id });
+			}
+		} catch {
+			// File gone — remove agent
+			removeAgent(id, agents, fileWatchers, pollingTimers, waitingTimers, permissionTimers, jsonlPollTimers, persistAgents);
+			webview?.postMessage({ type: 'agentClosed', id });
+		}
+	}
+}
 
 export function startFileWatching(
 	agentId: number,
@@ -81,8 +114,8 @@ export function ensureProjectScan(
 	projectDir: string,
 	knownJsonlFiles: Set<string>,
 	projectScanTimerRef: { current: ReturnType<typeof setInterval> | null },
-	activeAgentIdRef: { current: number | null },
-	_nextAgentIdRef: { current: number },
+	_activeAgentIdRef: { current: number | null },
+	nextAgentIdRef: { current: number },
 	agents: Map<number, AgentState>,
 	fileWatchers: Map<number, fs.FSWatcher>,
 	pollingTimers: Map<number, ReturnType<typeof setInterval>>,
@@ -100,11 +133,22 @@ export function ensureProjectScan(
 		for (const f of files) {
 			knownJsonlFiles.add(f);
 		}
+		// Also seed subagents/ directories
+		for (const entry of fs.readdirSync(projectDir)) {
+			const subagentsDir = path.join(projectDir, entry, 'subagents');
+			try {
+				if (fs.statSync(subagentsDir).isDirectory()) {
+					for (const sf of fs.readdirSync(subagentsDir).filter(f => f.endsWith('.jsonl'))) {
+						knownJsonlFiles.add(path.join(subagentsDir, sf));
+					}
+				}
+			} catch { /* ignore */ }
+		}
 	} catch { /* dir may not exist yet */ }
 
 	projectScanTimerRef.current = setInterval(() => {
 		scanForNewJsonlFiles(
-			projectDir, knownJsonlFiles, activeAgentIdRef,
+			projectDir, knownJsonlFiles, nextAgentIdRef,
 			agents, fileWatchers, pollingTimers, waitingTimers, permissionTimers,
 			webview, persistAgents,
 		);
@@ -114,7 +158,7 @@ export function ensureProjectScan(
 function scanForNewJsonlFiles(
 	projectDir: string,
 	knownJsonlFiles: Set<string>,
-	activeAgentIdRef: { current: number | null },
+	nextAgentIdRef: { current: number },
 	agents: Map<number, AgentState>,
 	fileWatchers: Map<number, fs.FSWatcher>,
 	pollingTimers: Map<number, ReturnType<typeof setInterval>>,
@@ -128,20 +172,62 @@ function scanForNewJsonlFiles(
 		files = fs.readdirSync(projectDir)
 			.filter(f => f.endsWith('.jsonl'))
 			.map(f => path.join(projectDir, f));
+		// Also scan subagents/ directories
+		for (const entry of fs.readdirSync(projectDir)) {
+			const subagentsDir = path.join(projectDir, entry, 'subagents');
+			try {
+				if (fs.statSync(subagentsDir).isDirectory()) {
+					const subFiles = fs.readdirSync(subagentsDir)
+						.filter(f => f.endsWith('.jsonl'))
+						.map(f => path.join(subagentsDir, f));
+					files.push(...subFiles);
+				}
+			} catch { /* ignore */ }
+		}
 	} catch { return; }
 
+	const ACTIVE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 	for (const file of files) {
 		if (!knownJsonlFiles.has(file)) {
 			knownJsonlFiles.add(file);
-			if (activeAgentIdRef.current !== null) {
-				console.log(`[Pixel Agents] New JSONL detected: ${path.basename(file)}, reassigning to agent ${activeAgentIdRef.current}`);
-				reassignAgentToFile(
-					activeAgentIdRef.current, file,
-					agents, fileWatchers, pollingTimers, waitingTimers, permissionTimers,
-					webview, persistAgents,
-				);
-			}
-			// In standalone mode, agents are only created explicitly via the UI
+
+			// Only create agent for recently active files
+			try {
+				const stat = fs.statSync(file);
+				if (Date.now() - stat.mtimeMs > ACTIVE_THRESHOLD_MS) continue;
+			} catch { continue; }
+
+			const sessionId = path.basename(file, '.jsonl');
+			const id = nextAgentIdRef.current++;
+			const agent: AgentState = {
+				id,
+				sessionId,
+				projectDir,
+				jsonlFile: file,
+				fileOffset: 0,
+				lineBuffer: '',
+				activeToolIds: new Set(),
+				activeToolStatuses: new Map(),
+				activeToolNames: new Map(),
+				activeSubagentToolIds: new Map(),
+				activeSubagentToolNames: new Map(),
+				isWaiting: false,
+				permissionSent: false,
+				hadToolsInTurn: false,
+			};
+
+			agents.set(id, agent);
+			console.log(`[Pixel Agents] New agent discovered: ${id} → "${sessionId}"`);
+			webview?.postMessage({ type: 'agentCreated', id });
+
+			// Start watching from current position
+			try {
+				const stat = fs.statSync(file);
+				agent.fileOffset = stat.size;
+				startFileWatching(id, file, agents, fileWatchers, pollingTimers, waitingTimers, permissionTimers, webview);
+			} catch { /* ignore */ }
+
+			persistAgents();
 		}
 	}
 }

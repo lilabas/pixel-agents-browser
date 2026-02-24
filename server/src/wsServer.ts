@@ -2,10 +2,10 @@ import WebSocket from 'ws';
 import * as path from 'path';
 import type { FSWatcher } from 'fs';
 import {
-	launchNewTerminal, removeAgent, persistAgents, restoreAgents,
+	removeAgent, persistAgents, restoreAgents,
 	sendExistingAgents, sendLayout, getProjectDirPath, autoDiscoverAgents,
 } from './agentManager.js';
-import { ensureProjectScan } from './fileWatcher.js';
+import { ensureProjectScan, cleanupStaleSubagents } from './fileWatcher.js';
 import {
 	loadFurnitureAssets, sendAssetsToWebview, loadFloorTiles,
 	sendFloorTilesToWebview, loadWallTiles, sendWallTilesToWebview,
@@ -54,6 +54,9 @@ export class PixelAgentsSession {
 	// /clear detection
 	private knownJsonlFiles = new Set<string>();
 	private projectScanTimer = { current: null as ReturnType<typeof setInterval> | null };
+
+	// Subagent cleanup
+	private cleanupTimer: ReturnType<typeof setInterval> | null = null;
 
 	// Layout
 	private defaultLayout: Record<string, unknown> | null = null;
@@ -121,6 +124,17 @@ export class PixelAgentsSession {
 					);
 				}
 
+				// Periodically clean up stale subagents
+				if (!this.cleanupTimer) {
+					this.cleanupTimer = setInterval(() => {
+						cleanupStaleSubagents(
+							this.agents, this.fileWatchers, this.pollingTimers,
+							this.waitingTimers, this.permissionTimers, this.jsonlPollTimers,
+							this.bridge, this.persistAgentsBound,
+						);
+					}, 10_000); // every 10s
+				}
+
 				// Load and send assets (async)
 				(async () => {
 					try {
@@ -160,36 +174,15 @@ export class PixelAgentsSession {
 				break;
 			}
 
-			case 'openClaude': {
-				launchNewTerminal(
-					this.nextAgentId, this.agents, this.activeAgentId,
-					this.knownJsonlFiles, this.fileWatchers, this.pollingTimers,
-					this.waitingTimers, this.permissionTimers, this.jsonlPollTimers,
-					this.projectScanTimer, this.bridge, this.workspacePath,
-					this.persistAgentsBound,
-				);
-				break;
-			}
-
-			case 'focusAgent': {
-				this.bridge.postMessage({ type: 'focusTerminal', id: message.id });
-				break;
-			}
-
 			case 'closeAgent': {
 				const agent = this.agents.get(message.id as number);
 				if (agent) {
-					if (agent.processRef) {
-						agent.processRef.kill();
-					} else {
-						// Restored agent with no live process — remove directly
-						removeAgent(
-							message.id as number, this.agents, this.fileWatchers,
-							this.pollingTimers, this.waitingTimers, this.permissionTimers,
-							this.jsonlPollTimers, this.persistAgentsBound,
-						);
-						this.bridge.postMessage({ type: 'agentClosed', id: message.id });
-					}
+					removeAgent(
+						message.id as number, this.agents, this.fileWatchers,
+						this.pollingTimers, this.waitingTimers, this.permissionTimers,
+						this.jsonlPollTimers, this.persistAgentsBound,
+					);
+					this.bridge.postMessage({ type: 'agentClosed', id: message.id });
 				}
 				break;
 			}
@@ -234,22 +227,7 @@ export class PixelAgentsSession {
 				break;
 			}
 
-			case 'terminalInput': {
-				const agent = this.agents.get(message.id as number);
-				if (agent?.processRef) {
-					agent.processRef.write(message.data as string);
-				}
-				break;
 			}
-
-			case 'terminalResize': {
-				const agent = this.agents.get(message.id as number);
-				if (agent?.processRef && typeof message.cols === 'number' && typeof message.rows === 'number') {
-					agent.processRef.resize(message.cols, message.rows);
-				}
-				break;
-			}
-		}
 	}
 
 	private startLayoutWatcher(): void {
@@ -278,6 +256,11 @@ export class PixelAgentsSession {
 		if (this.projectScanTimer.current) {
 			clearInterval(this.projectScanTimer.current);
 			this.projectScanTimer.current = null;
+		}
+
+		if (this.cleanupTimer) {
+			clearInterval(this.cleanupTimer);
+			this.cleanupTimer = null;
 		}
 
 		this.ws.close();

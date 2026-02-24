@@ -1,14 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import * as crypto from 'crypto';
-import { execFileSync } from 'child_process';
-import * as pty from 'node-pty';
 import type { WebviewBridge } from './wsServer.js';
 import type { AgentState, PersistedAgent } from './types.js';
 import { cancelWaitingTimer, cancelPermissionTimer } from './timerManager.js';
-import { startFileWatching, readNewLines, ensureProjectScan } from './fileWatcher.js';
-import { JSONL_POLL_INTERVAL_MS, AGENTS_FILE_NAME, LAYOUT_FILE_DIR } from './constants.js';
+import { startFileWatching, ensureProjectScan } from './fileWatcher.js';
+import { AGENTS_FILE_NAME, LAYOUT_FILE_DIR } from './constants.js';
 import { loadLayout } from './layoutPersistence.js';
 import { readSettings } from './settingsPersistence.js';
 
@@ -16,109 +13,6 @@ export function getProjectDirPath(workspacePath: string): string | null {
 	if (!workspacePath) return null;
 	const dirName = workspacePath.replace(/[:\\/]/g, '-');
 	return path.join(os.homedir(), '.claude', 'projects', dirName);
-}
-
-export function launchNewTerminal(
-	nextAgentIdRef: { current: number },
-	agents: Map<number, AgentState>,
-	activeAgentIdRef: { current: number | null },
-	knownJsonlFiles: Set<string>,
-	fileWatchers: Map<number, fs.FSWatcher>,
-	pollingTimers: Map<number, ReturnType<typeof setInterval>>,
-	waitingTimers: Map<number, ReturnType<typeof setTimeout>>,
-	permissionTimers: Map<number, ReturnType<typeof setTimeout>>,
-	jsonlPollTimers: Map<number, ReturnType<typeof setInterval>>,
-	projectScanTimerRef: { current: ReturnType<typeof setInterval> | null },
-	webview: WebviewBridge | undefined,
-	workspacePath: string,
-	persistAgentsFn: () => void,
-): void {
-	const projectDir = getProjectDirPath(workspacePath);
-	if (!projectDir) {
-		console.log(`[Pixel Agents] No project dir, cannot track agent`);
-		return;
-	}
-
-	const sessionId = crypto.randomUUID();
-
-	// Resolve full path to claude binary (node-pty's posix_spawnp may not see full shell PATH)
-	let claudePath = 'claude';
-	try {
-		claudePath = execFileSync('which', ['claude'], { encoding: 'utf-8' }).trim();
-	} catch { /* fall back to bare name */ }
-
-	const proc = pty.spawn(claudePath, ['--session-id', sessionId], {
-		name: 'xterm-256color',
-		cols: 120,
-		rows: 30,
-		cwd: workspacePath,
-		env: process.env as Record<string, string>,
-	});
-
-	// Pre-register expected JSONL file so project scan won't treat it as a /clear file
-	const expectedFile = path.join(projectDir, `${sessionId}.jsonl`);
-	knownJsonlFiles.add(expectedFile);
-
-	// Create agent immediately (before JSONL file exists)
-	const id = nextAgentIdRef.current++;
-	const agent: AgentState = {
-		id,
-		processRef: proc,
-		sessionId,
-		projectDir,
-		jsonlFile: expectedFile,
-		fileOffset: 0,
-		lineBuffer: '',
-		activeToolIds: new Set(),
-		activeToolStatuses: new Map(),
-		activeToolNames: new Map(),
-		activeSubagentToolIds: new Map(),
-		activeSubagentToolNames: new Map(),
-		isWaiting: false,
-		permissionSent: false,
-		hadToolsInTurn: false,
-	};
-
-	agents.set(id, agent);
-	activeAgentIdRef.current = id;
-	persistAgentsFn();
-	console.log(`[Pixel Agents] Agent ${id}: created with session ${sessionId}`);
-	webview?.postMessage({ type: 'agentCreated', id });
-
-	// Stream terminal output to webview
-	proc.onData((data: string) => {
-		webview?.postMessage({ type: 'terminalData', id, data });
-	});
-
-	// Clean up when process exits
-	proc.onExit(({ exitCode }) => {
-		console.log(`[Pixel Agents] Agent ${id}: process exited with code ${exitCode}`);
-		removeAgent(
-			id, agents, fileWatchers, pollingTimers,
-			waitingTimers, permissionTimers, jsonlPollTimers, persistAgentsFn,
-		);
-		webview?.postMessage({ type: 'agentClosed', id });
-	});
-
-	ensureProjectScan(
-		projectDir, knownJsonlFiles, projectScanTimerRef, activeAgentIdRef,
-		nextAgentIdRef, agents, fileWatchers, pollingTimers, waitingTimers, permissionTimers,
-		webview, persistAgentsFn,
-	);
-
-	// Poll for the specific JSONL file to appear
-	const pollTimer = setInterval(() => {
-		try {
-			if (fs.existsSync(agent.jsonlFile)) {
-				console.log(`[Pixel Agents] Agent ${id}: found JSONL file ${path.basename(agent.jsonlFile)}`);
-				clearInterval(pollTimer);
-				jsonlPollTimers.delete(id);
-				startFileWatching(id, agent.jsonlFile, agents, fileWatchers, pollingTimers, waitingTimers, permissionTimers, webview);
-				readNewLines(id, agents, waitingTimers, permissionTimers, webview);
-			}
-		} catch { /* file may not exist yet */ }
-	}, JSONL_POLL_INTERVAL_MS);
-	jsonlPollTimers.set(id, pollTimer);
 }
 
 export function removeAgent(
@@ -133,9 +27,6 @@ export function removeAgent(
 ): void {
 	const agent = agents.get(agentId);
 	if (!agent) return;
-
-	// Kill the process if still running
-	agent.processRef?.kill();
 
 	// Stop JSONL poll timer
 	const jpTimer = jsonlPollTimers.get(agentId);
@@ -204,6 +95,9 @@ export function restoreAgents(
 	const ONE_HOUR_MS = 60 * 60 * 1000;
 
 	for (const p of persisted) {
+		// Skip subagent sessions — they are transient and discovered dynamically
+		if (p.jsonlFile.includes('/subagents/')) continue;
+
 		// Only restore if JSONL file exists and was modified within the last hour
 		try {
 			if (!fs.existsSync(p.jsonlFile)) continue;
@@ -215,7 +109,6 @@ export function restoreAgents(
 
 		const agent: AgentState = {
 			id: p.id,
-			processRef: null, // monitoring only — no live process
 			sessionId: p.sessionId,
 			projectDir: p.projectDir,
 			jsonlFile: p.jsonlFile,
@@ -340,6 +233,18 @@ export function autoDiscoverAgents(
 		jsonlFiles = fs.readdirSync(projectDir)
 			.filter(f => f.endsWith('.jsonl'))
 			.map(f => path.join(projectDir, f));
+		// Also scan subagents/ directories inside each session folder
+		for (const entry of fs.readdirSync(projectDir)) {
+			const subagentsDir = path.join(projectDir, entry, 'subagents');
+			try {
+				if (fs.statSync(subagentsDir).isDirectory()) {
+					const subFiles = fs.readdirSync(subagentsDir)
+						.filter(f => f.endsWith('.jsonl'))
+						.map(f => path.join(subagentsDir, f));
+					jsonlFiles.push(...subFiles);
+				}
+			} catch { /* not a session dir or no subagents */ }
+		}
 	} catch { return; }
 
 	// Collect JSONL files already tracked by existing agents
@@ -349,20 +254,22 @@ export function autoDiscoverAgents(
 	}
 
 	const ACTIVE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+	const SUBAGENT_THRESHOLD_MS = 30 * 1000; // 30 seconds — subagents are transient
 	for (const filePath of jsonlFiles) {
 		if (trackedFiles.has(filePath)) continue;
 
 		// Only pick up sessions actively being written to
+		const isSubagent = filePath.includes('/subagents/');
+		const threshold = isSubagent ? SUBAGENT_THRESHOLD_MS : ACTIVE_THRESHOLD_MS;
 		try {
 			const stat = fs.statSync(filePath);
-			if (Date.now() - stat.mtimeMs > ACTIVE_THRESHOLD_MS) continue;
+			if (Date.now() - stat.mtimeMs > threshold) continue;
 		} catch { continue; }
 
 		const sessionId = path.basename(filePath, '.jsonl');
 		const id = nextAgentIdRef.current++;
 		const agent: AgentState = {
 			id,
-			processRef: null,
 			sessionId,
 			projectDir,
 			jsonlFile: filePath,

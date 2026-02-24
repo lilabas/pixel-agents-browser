@@ -3,12 +3,10 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "postinstall": "chmod +x node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper 2>/dev/null || true"
+    "build": "tsc"
   },
   "dependencies": {
     "express": "^4.21.0",
-    "node-pty": "^1.1.0",
     "pngjs": "^7.0.0",
     "ws": "^8.18.0"
   },

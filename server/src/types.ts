@@ -1,8 +1,5 @@
-import type { IPty } from 'node-pty';
-
 export interface AgentState {
 	id: number;
-	processRef: IPty | null;
 	sessionId: string;
 	projectDir: string;
 	jsonlFile: string;
