@@ -3,7 +3,7 @@ import * as path from 'path';
 import type { FSWatcher } from 'fs';
 import {
 	removeAgent, persistAgents, restoreAgents,
-	sendExistingAgents, sendLayout, getProjectDirPath, autoDiscoverAgents,
+	sendExistingAgents, sendLayout, autoDiscoverAgents,
 } from './agentManager.js';
 import { ensureProjectScan, cleanupStaleAgents } from './fileWatcher.js';
 import {
@@ -101,9 +101,8 @@ export class PixelAgentsSession {
 					this.activeAgentId, this.bridge, this.persistAgentsBound,
 				);
 
-				// Auto-discover active Claude sessions for this project
+				// Auto-discover active Claude sessions across all projects
 				autoDiscoverAgents(
-					this.workspacePath,
 					this.nextAgentId, this.agents, this.knownJsonlFiles,
 					this.fileWatchers, this.pollingTimers, this.waitingTimers,
 					this.permissionTimers, this.bridge, this.persistAgentsBound,
@@ -111,18 +110,15 @@ export class PixelAgentsSession {
 
 				// Send settings
 				const settings = readSettings();
-				this.bridge.postMessage({ type: 'settingsLoaded', soundEnabled: settings.soundEnabled });
+				this.bridge.postMessage({ type: 'settingsLoaded', soundEnabled: settings.soundEnabled, projectLabelsEnabled: settings.projectLabelsEnabled });
 
-				// Ensure project scan
-				const projectDir = getProjectDirPath(this.workspacePath);
-				if (projectDir) {
-					ensureProjectScan(
-						projectDir, this.knownJsonlFiles, this.projectScanTimer,
-						this.activeAgentId, this.nextAgentId, this.agents,
-						this.fileWatchers, this.pollingTimers, this.waitingTimers,
-						this.permissionTimers, this.bridge, this.persistAgentsBound,
-					);
-				}
+				// Ensure project scan across all projects
+				ensureProjectScan(
+					this.knownJsonlFiles, this.projectScanTimer,
+					this.activeAgentId, this.nextAgentId, this.agents,
+					this.fileWatchers, this.pollingTimers, this.waitingTimers,
+					this.permissionTimers, this.bridge, this.persistAgentsBound,
+				);
 
 				// Periodically clean up stale agents
 				if (!this.cleanupTimer) {
@@ -203,6 +199,11 @@ export class PixelAgentsSession {
 
 			case 'setSoundEnabled': {
 				writeSettings({ soundEnabled: message.enabled as boolean });
+				break;
+			}
+
+			case 'setProjectLabelsEnabled': {
+				writeSettings({ projectLabelsEnabled: message.enabled as boolean });
 				break;
 			}
 

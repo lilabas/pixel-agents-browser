@@ -7,6 +7,8 @@ interface SettingsModalProps {
   onClose: () => void
   isDebugMode: boolean
   onToggleDebugMode: () => void
+  projectLabelsEnabled: boolean
+  onToggleProjectLabels: () => void
 }
 
 const menuItemBase: React.CSSProperties = {
@@ -24,7 +26,7 @@ const menuItemBase: React.CSSProperties = {
   textAlign: 'left',
 }
 
-export function SettingsModal({ isOpen, onClose, isDebugMode, onToggleDebugMode }: SettingsModalProps) {
+export function SettingsModal({ isOpen, onClose, isDebugMode, onToggleDebugMode, projectLabelsEnabled, onToggleProjectLabels }: SettingsModalProps) {
   const [hovered, setHovered] = useState<string | null>(null)
   const [soundLocal, setSoundLocal] = useState(isSoundEnabled)
 
@@ -168,6 +170,35 @@ export function SettingsModal({ isOpen, onClose, isDebugMode, onToggleDebugMode 
             }}
           >
             {soundLocal ? 'X' : ''}
+          </span>
+        </button>
+        <button
+          onClick={onToggleProjectLabels}
+          onMouseEnter={() => setHovered('labels')}
+          onMouseLeave={() => setHovered(null)}
+          style={{
+            ...menuItemBase,
+            background: hovered === 'labels' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+          }}
+        >
+          <span>Project Labels</span>
+          <span
+            style={{
+              width: 14,
+              height: 14,
+              border: '2px solid rgba(255, 255, 255, 0.5)',
+              borderRadius: 0,
+              background: projectLabelsEnabled ? 'rgba(90, 140, 255, 0.8)' : 'transparent',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '12px',
+              lineHeight: 1,
+              color: '#fff',
+            }}
+          >
+            {projectLabelsEnabled ? 'X' : ''}
           </span>
         </button>
         <button

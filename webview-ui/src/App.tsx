@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react'
 import { OfficeState } from './office/engine/officeState.js'
 import { OfficeCanvas } from './office/components/OfficeCanvas.js'
 import { ToolOverlay } from './office/components/ToolOverlay.js'
+import { AgentLabels } from './components/AgentLabels.js'
 import { EditorToolbar } from './office/editor/EditorToolbar.js'
 import { EditorState } from './office/editor/editorState.js'
 import { EditTool } from './office/types.js'
@@ -121,7 +122,7 @@ function App() {
 
   const isEditDirty = useCallback(() => editor.isEditMode && editor.isDirty, [editor.isEditMode, editor.isDirty])
 
-  const { agents, selectedAgent, agentTools, agentStatuses, subagentTools, subagentCharacters, layoutReady, loadedAssets } = useExtensionMessages(getOfficeState, editor.setLastSavedLayout, isEditDirty)
+  const { agents, selectedAgent, agentTools, agentStatuses, subagentTools, subagentCharacters, layoutReady, loadedAssets, projectLabelsEnabled, setProjectLabelsEnabled } = useExtensionMessages(getOfficeState, editor.setLastSavedLayout, isEditDirty)
 
   const [isDebugMode, setIsDebugMode] = useState(false)
 
@@ -224,6 +225,12 @@ function App() {
         onToggleEditMode={editor.handleToggleEditMode}
         isDebugMode={isDebugMode}
         onToggleDebugMode={handleToggleDebugMode}
+        projectLabelsEnabled={projectLabelsEnabled}
+        onToggleProjectLabels={() => {
+          const newVal = !projectLabelsEnabled
+          setProjectLabelsEnabled(newVal)
+          vscode.postMessage({ type: 'setProjectLabelsEnabled', enabled: newVal })
+        }}
       />
 
       {editor.isEditMode && editor.isDirty && (
@@ -278,6 +285,16 @@ function App() {
           />
         )
       })()}
+
+      {projectLabelsEnabled && (
+        <AgentLabels
+          officeState={officeState}
+          agents={agents}
+          containerRef={containerRef}
+          zoom={editor.zoom}
+          panRef={editor.panRef}
+        />
+      )}
 
       <ToolOverlay
         officeState={officeState}

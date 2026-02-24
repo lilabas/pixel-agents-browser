@@ -1,26 +1,22 @@
 import { useState, useEffect } from 'react'
 import type { OfficeState } from '../office/engine/officeState.js'
-import type { SubagentCharacter } from '../hooks/useExtensionMessages.js'
 import { TILE_SIZE, CharacterState } from '../office/types.js'
+import { CHARACTER_SITTING_OFFSET_PX, TOOL_OVERLAY_VERTICAL_OFFSET } from '../constants.js'
 
 interface AgentLabelsProps {
   officeState: OfficeState
   agents: number[]
-  agentStatuses: Record<number, string>
   containerRef: React.RefObject<HTMLDivElement | null>
   zoom: number
   panRef: React.RefObject<{ x: number; y: number }>
-  subagentCharacters: SubagentCharacter[]
 }
 
 export function AgentLabels({
   officeState,
   agents,
-  agentStatuses,
   containerRef,
   zoom,
   panRef,
-  subagentCharacters,
 }: AgentLabelsProps) {
   const [, setTick] = useState(0)
   useEffect(() => {
@@ -37,7 +33,6 @@ export function AgentLabels({
   if (!el) return null
   const rect = el.getBoundingClientRect()
   const dpr = window.devicePixelRatio || 1
-  // Compute device pixel offset (same math as renderFrame, including pan)
   const canvasW = Math.round(rect.width * dpr)
   const canvasH = Math.round(rect.height * dpr)
   const layout = officeState.getLayout()
@@ -46,39 +41,22 @@ export function AgentLabels({
   const deviceOffsetX = Math.floor((canvasW - mapW) / 2) + Math.round(panRef.current.x)
   const deviceOffsetY = Math.floor((canvasH - mapH) / 2) + Math.round(panRef.current.y)
 
-  // Build sub-agent label lookup
-  const subLabelMap = new Map<number, string>()
-  for (const sub of subagentCharacters) {
-    subLabelMap.set(sub.id, sub.label)
-  }
-
-  // All character IDs to render labels for (regular agents + sub-agents)
-  const allIds = [...agents, ...subagentCharacters.map((s) => s.id)]
-
   return (
     <>
-      {allIds.map((id) => {
+      {agents.map((id) => {
         const ch = officeState.characters.get(id)
-        if (!ch) return null
+        if (!ch || ch.isSubagent) return null
+        if (!ch.projectName) return null
+        // Skip agents with matrix effects (spawning/despawning)
+        if (ch.matrixEffect) return null
 
-        // Character position: device pixels → CSS pixels (follow sitting offset)
-        const sittingOffset = ch.state === CharacterState.TYPE ? 6 : 0
+        const isSelected = officeState.selectedAgentId === id
+        const isHovered = officeState.hoveredAgentId === id
+        const sittingOffset = ch.state === CharacterState.TYPE ? CHARACTER_SITTING_OFFSET_PX : 0
         const screenX = (deviceOffsetX + ch.x * zoom) / dpr
-        const screenY = (deviceOffsetY + (ch.y + sittingOffset - 24) * zoom) / dpr
-
-        const status = agentStatuses[id]
-        const isWaiting = status === 'waiting'
-        const isActive = ch.isActive
-        const isSub = ch.isSubagent
-
-        let dotColor = 'transparent'
-        if (isWaiting) {
-          dotColor = 'var(--pixel-status-permission)'
-        } else if (isActive) {
-          dotColor = 'var(--pixel-status-active)'
-        }
-
-        const labelText = subLabelMap.get(id) || `Agent #${id}`
+        const screenY = (deviceOffsetY + (ch.y + sittingOffset - TOOL_OVERLAY_VERTICAL_OFFSET) * zoom) / dpr
+        // When selected/hovered, ToolOverlay appears at screenY - 24, so push label above it
+        const topOffset = (isSelected || isHovered) ? -50 : -24
 
         return (
           <div
@@ -86,42 +64,28 @@ export function AgentLabels({
             style={{
               position: 'absolute',
               left: screenX,
-              top: screenY - 16,
+              top: screenY + topOffset,
               transform: 'translateX(-50%)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
               pointerEvents: 'none',
-              zIndex: 40,
+              zIndex: 'var(--pixel-overlay-z)',
             }}
           >
-            {dotColor !== 'transparent' && (
-              <span
-                className={isActive && !isWaiting ? 'pixel-agents-pulse' : undefined}
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  background: dotColor,
-                  marginBottom: 2,
-                }}
-              />
-            )}
             <span
               style={{
-                fontSize: isSub ? '16px' : '18px',
-                fontStyle: isSub ? 'italic' : undefined,
-                color: 'var(--pixel-text)',
-                background: 'rgba(30,30,46,0.7)',
-                padding: '1px 4px',
-                borderRadius: 2,
+                fontSize: '18px',
+                color: 'var(--pixel-text-dim)',
+                background: 'rgba(30,30,46,0.65)',
+                padding: '1px 5px',
+                borderRadius: 0,
+                border: '1px solid rgba(255,255,255,0.08)',
                 whiteSpace: 'nowrap',
-                maxWidth: isSub ? 120 : undefined,
-                overflow: isSub ? 'hidden' : undefined,
-                textOverflow: isSub ? 'ellipsis' : undefined,
+                maxWidth: 160,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: 'block',
               }}
             >
-              {labelText}
+              {ch.projectName}
             </span>
           </div>
         )

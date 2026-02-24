@@ -15,6 +15,59 @@ export function getProjectDirPath(workspacePath: string): string | null {
 	return path.join(os.homedir(), '.claude', 'projects', dirName);
 }
 
+export function getAllProjectDirs(): string[] {
+	const claudeProjectsDir = path.join(os.homedir(), '.claude', 'projects');
+	try {
+		if (!fs.existsSync(claudeProjectsDir)) return [];
+		return fs.readdirSync(claudeProjectsDir, { withFileTypes: true })
+			.filter(d => d.isDirectory())
+			.map(d => path.join(claudeProjectsDir, d.name));
+	} catch { return []; }
+}
+
+export function getProjectName(projectDir: string): string {
+	// projectDir like: ~/.claude/projects/-Users-lilabas-Documents-personal-pixel-agents-browser
+	// Encoded form replaces /:\  with -, so hyphens in dir names are ambiguous.
+	// Use known directory names to find where the project name starts.
+	const encoded = path.basename(projectDir);
+	const segments = encoded.split('-').filter(Boolean);
+	if (segments.length === 0) return encoded;
+
+	const knownDirs = new Set([
+		'Users', 'home', 'root',
+		'Documents', 'Desktop', 'Downloads', 'Library',
+		'Projects', 'projects', 'repos', 'repositories',
+		'src', 'source', 'code', 'Code',
+		'work', 'Work', 'workspace', 'Workspace',
+		'dev', 'Dev', 'Development',
+		'personal', 'Personal',
+		'github', 'GitHub', 'gitlab', 'GitLab',
+		'go', 'var', 'tmp', 'opt', 'usr', 'etc',
+		'mnt', 'media', 'data',
+	]);
+
+	let lastKnownIdx = -1;
+	for (let i = 0; i < segments.length; i++) {
+		if (knownDirs.has(segments[i])) {
+			lastKnownIdx = i;
+			// Users/home are always followed by a username — skip it too
+			if ((segments[i] === 'Users' || segments[i] === 'home') && i + 1 < segments.length) {
+				lastKnownIdx = i + 1;
+				i++;
+			}
+		}
+	}
+
+	if (lastKnownIdx >= 0 && lastKnownIdx < segments.length - 1) {
+		return segments.slice(lastKnownIdx + 1).join('-');
+	}
+	// Fallback: skip first two segments (likely /Users/<name> or /home/<name>)
+	if (segments.length > 2) {
+		return segments.slice(2).join('-');
+	}
+	return segments.join('-') || encoded;
+}
+
 export function removeAgent(
 	agentId: number,
 	agents: Map<number, AgentState>,
@@ -91,7 +144,6 @@ export function restoreAgents(
 	if (persisted.length === 0) return;
 
 	let maxId = 0;
-	let restoredProjectDir: string | null = null;
 	const RESTORE_STALE_MS = 5 * 60 * 1000; // 5 minutes — matches cleanup threshold
 
 	for (const p of persisted) {
@@ -129,7 +181,6 @@ export function restoreAgents(
 		console.log(`[Pixel Agents] Restored agent ${p.id} → session "${p.sessionId}"`);
 
 		if (p.id > maxId) maxId = p.id;
-		restoredProjectDir = p.projectDir;
 
 		// Start file watching, skipping to end of file
 		try {
@@ -148,13 +199,11 @@ export function restoreAgents(
 	doPersist();
 
 	// Start project scan for /clear detection
-	if (restoredProjectDir) {
-		ensureProjectScan(
-			restoredProjectDir, knownJsonlFiles, projectScanTimerRef, activeAgentIdRef,
-			nextAgentIdRef, agents, fileWatchers, pollingTimers, waitingTimers, permissionTimers,
-			webview, doPersist,
-		);
-	}
+	ensureProjectScan(
+		knownJsonlFiles, projectScanTimerRef, activeAgentIdRef,
+		nextAgentIdRef, agents, fileWatchers, pollingTimers, waitingTimers, permissionTimers,
+		webview, doPersist,
+	);
 }
 
 export function sendExistingAgents(
@@ -170,7 +219,14 @@ export function sendExistingAgents(
 
 	// Include persisted palette/seatId from settings
 	const settings = readSettings();
-	const agentMeta = settings.agentSeats || {};
+	const baseMeta = settings.agentSeats || {};
+	// Merge projectName from live agent state into meta
+	const agentMeta: Record<number, Record<string, unknown>> = {};
+	for (const id of agentIds) {
+		const agent = agents.get(id);
+		const base = (baseMeta as Record<number, Record<string, unknown>>)[id] || {};
+		agentMeta[id] = { ...base, projectName: agent ? getProjectName(agent.projectDir) : undefined };
+	}
 	console.log(`[Pixel Agents] sendExistingAgents: agents=${JSON.stringify(agentIds)}, meta=${JSON.stringify(agentMeta)}`);
 
 	webview.postMessage({
@@ -213,7 +269,6 @@ export function sendCurrentAgentStatuses(
  * that aren't already tracked. Detects sessions modified within the last hour.
  */
 export function autoDiscoverAgents(
-	workspacePath: string,
 	nextAgentIdRef: { current: number },
 	agents: Map<number, AgentState>,
 	knownJsonlFiles: Set<string>,
@@ -224,26 +279,31 @@ export function autoDiscoverAgents(
 	webview: WebviewBridge | undefined,
 	persistAgentsFn: () => void,
 ): void {
-	const projectDir = getProjectDirPath(workspacePath);
-	if (!projectDir) return;
+	const projectDirs = getAllProjectDirs();
+	if (projectDirs.length === 0) return;
 
 	let jsonlFiles: string[];
 	try {
-		if (!fs.existsSync(projectDir)) return;
-		jsonlFiles = fs.readdirSync(projectDir)
-			.filter(f => f.endsWith('.jsonl'))
-			.map(f => path.join(projectDir, f));
-		// Also scan subagents/ directories inside each session folder
-		for (const entry of fs.readdirSync(projectDir)) {
-			const subagentsDir = path.join(projectDir, entry, 'subagents');
+		jsonlFiles = [];
+		for (const projectDir of projectDirs) {
 			try {
-				if (fs.statSync(subagentsDir).isDirectory()) {
-					const subFiles = fs.readdirSync(subagentsDir)
-						.filter(f => f.endsWith('.jsonl'))
-						.map(f => path.join(subagentsDir, f));
-					jsonlFiles.push(...subFiles);
+				const files = fs.readdirSync(projectDir)
+					.filter(f => f.endsWith('.jsonl'))
+					.map(f => path.join(projectDir, f));
+				jsonlFiles.push(...files);
+				// Also scan subagents/ directories inside each session folder
+				for (const entry of fs.readdirSync(projectDir)) {
+					const subagentsDir = path.join(projectDir, entry, 'subagents');
+					try {
+						if (fs.statSync(subagentsDir).isDirectory()) {
+							const subFiles = fs.readdirSync(subagentsDir)
+								.filter(f => f.endsWith('.jsonl'))
+								.map(f => path.join(subagentsDir, f));
+							jsonlFiles.push(...subFiles);
+						}
+					} catch { /* not a session dir or no subagents */ }
 				}
-			} catch { /* not a session dir or no subagents */ }
+			} catch { /* skip unreadable project dir */ }
 		}
 	} catch { return; }
 
@@ -268,10 +328,15 @@ export function autoDiscoverAgents(
 
 		const sessionId = path.basename(filePath, '.jsonl');
 		const id = nextAgentIdRef.current++;
+		// For subagent files (.../projectDir/session/subagents/file.jsonl), go up 2 dirs
+		// For normal files (.../projectDir/file.jsonl), go up 1 dir
+		const derivedProjectDir = isSubagent
+			? path.dirname(path.dirname(path.dirname(filePath)))
+			: path.dirname(filePath);
 		const agent: AgentState = {
 			id,
 			sessionId,
-			projectDir,
+			projectDir: derivedProjectDir,
 			jsonlFile: filePath,
 			fileOffset: 0,
 			lineBuffer: '',
@@ -287,8 +352,9 @@ export function autoDiscoverAgents(
 
 		agents.set(id, agent);
 		knownJsonlFiles.add(filePath);
+		const projectName = getProjectName(derivedProjectDir);
 		console.log(`[Pixel Agents] Auto-discovered agent ${id} → session "${sessionId}"`);
-		webview?.postMessage({ type: 'agentCreated', id });
+		webview?.postMessage({ type: 'agentCreated', id, projectName });
 
 		// Start watching, skipping to end of file so we only see new activity
 		try {

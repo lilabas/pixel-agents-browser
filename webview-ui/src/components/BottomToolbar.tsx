@@ -6,6 +6,8 @@ interface BottomToolbarProps {
   onToggleEditMode: () => void
   isDebugMode: boolean
   onToggleDebugMode: () => void
+  projectLabelsEnabled: boolean
+  onToggleProjectLabels: () => void
 }
 
 const panelStyle: React.CSSProperties = {
@@ -45,6 +47,8 @@ export function BottomToolbar({
   onToggleEditMode,
   isDebugMode,
   onToggleDebugMode,
+  projectLabelsEnabled,
+  onToggleProjectLabels,
 }: BottomToolbarProps) {
   const [hovered, setHovered] = useState<string | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
@@ -89,6 +93,8 @@ export function BottomToolbar({
           onClose={() => setIsSettingsOpen(false)}
           isDebugMode={isDebugMode}
           onToggleDebugMode={onToggleDebugMode}
+          projectLabelsEnabled={projectLabelsEnabled}
+          onToggleProjectLabels={onToggleProjectLabels}
         />
       </div>
     </div>

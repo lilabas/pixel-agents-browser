@@ -5,11 +5,13 @@ import { LAYOUT_FILE_DIR, SETTINGS_FILE_NAME } from './constants.js';
 
 export interface Settings {
 	soundEnabled: boolean;
+	projectLabelsEnabled: boolean;
 	agentSeats?: Record<string, { palette: number; hueShift: number; seatId: string }>;
 }
 
 const DEFAULT_SETTINGS: Settings = {
 	soundEnabled: true,
+	projectLabelsEnabled: true,
 };
 
 function getSettingsFilePath(): string {

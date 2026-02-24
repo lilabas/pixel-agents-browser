@@ -193,4 +193,6 @@ export interface Character {
   matrixEffectTimer: number
   /** Per-column random seeds (16 values) for staggered rain timing */
   matrixEffectSeeds: number[]
+  /** Project name this agent belongs to (e.g. "pixel-agents-browser") */
+  projectName: string
 }
