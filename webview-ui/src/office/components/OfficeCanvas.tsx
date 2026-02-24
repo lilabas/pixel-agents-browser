@@ -8,7 +8,7 @@ import { TILE_SIZE, EditTool } from '../types.js'
 import { CAMERA_FOLLOW_LERP, CAMERA_FOLLOW_SNAP_THRESHOLD, ZOOM_MIN, ZOOM_MAX, ZOOM_SCROLL_THRESHOLD, PAN_MARGIN_FRACTION } from '../../constants.js'
 import { getCatalogEntry, isRotatable } from '../layout/furnitureCatalog.js'
 import { canPlaceFurniture, getWallPlacementRow } from '../editor/editorActions.js'
-import { vscode } from '../../vscodeApi.js'
+import { vscode } from '../../wsClient.js'
 import { unlockAudio } from '../../notificationSound.js'
 
 interface OfficeCanvasProps {
