@@ -26,7 +26,6 @@ export function getAllProjectDirs(): string[] {
 }
 
 export function getProjectName(projectDir: string): string {
-	// projectDir like: ~/.claude/projects/-Users-lilabas-Documents-personal-pixel-agents-browser
 	// Encoded form replaces /:\  with -, so hyphens in dir names are ambiguous.
 	// Use known directory names to find where the project name starts.
 	const encoded = path.basename(projectDir);
